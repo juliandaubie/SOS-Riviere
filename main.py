@@ -1,6 +1,7 @@
 import pygame
 import sys
-from menu import MenuScreen, STATE_MENU, STATE_PLAYING, STATE_QUIT, SCREEN_W, SCREEN_H
+from constantes import *
+from menu import MenuScreen
 
 
 def main():
@@ -12,12 +13,10 @@ def main():
     state = STATE_MENU
 
     while state != STATE_QUIT:
-
         if state == STATE_MENU:
             state = MenuScreen(screen).run()
-
         elif state == STATE_PLAYING:
-            from game import Game          # import tardif — évite les imports circulaires
+            from game import Game
             state = Game(screen, clock).run()
 
     pygame.quit()
