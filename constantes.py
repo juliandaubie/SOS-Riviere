@@ -54,8 +54,9 @@ STATE_PLAYING = "playing"
 STATE_QUIT    = "quit"
 
 
-# ─ IMAGE ─────────────────────────────────────────────────────────────────
 BG_IMAGE_PATH = "assets/sos_riviere.png"
-
+MUSIC_MENU_PATH = "assets/musique_menu.mp3"
+MUSIC_JEU_PATH  = "assets/musique_jeu.mp3"
+MUSIC_VOLUME = 0.3
 
 MENU_BTN_Y = SCREEN_H // 2 + 160

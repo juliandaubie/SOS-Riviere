@@ -3,6 +3,7 @@ import os
 from constantes import *
 from utils import draw_tower_icon
 import random
+import music
 
 class Palette:
     """Panneau latéral avec les tours draggables."""
@@ -196,6 +197,7 @@ class MenuScreen:
 
     def run(self) -> str:
         """Lance la boucle du menu et retourne l'état suivant."""
+        music.play("menu")
         while True:
             self.clock.tick(FPS)
 

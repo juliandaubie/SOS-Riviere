@@ -4,6 +4,7 @@ from map import Map, px_to_tile, is_valid_tile
 from menu import Palette
 from tour import  DraggableItem
 from renderer import draw_frame
+import music
 
 
 class Game:
@@ -113,6 +114,7 @@ class Game:
 
     def run(self) -> str:
         """Lance la boucle de jeu. Retourne l'état suivant (STATE_MENU ou STATE_QUIT)."""
+        music.play("jeu")
         while True:
             dt    = self.clock.tick(FPS)
             mx, my = pygame.mouse.get_pos()
