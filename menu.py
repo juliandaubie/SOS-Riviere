@@ -1,12 +1,12 @@
 import pygame
 import os
+import random
 from constantes import *
 from utils import draw_tower_icon
 import random
 import music
 
 class Palette:
-    """Panneau latéral avec les tours draggables."""
     PANEL_X = MAP_X + COLS * TILE_SIZE + 20
     PANEL_W = 180
     ITEM_H = 90
@@ -24,7 +24,6 @@ class Palette:
         return None, 0, 0
 
     def draw(self, surface, font, font_small):
-        # Fond panneau
         panel_rect = pygame.Rect(self.PANEL_X - 10, MAP_Y - 10,
                                  self.PANEL_W + 20, ROWS * TILE_SIZE + 20)
         pygame.draw.rect(surface, (20, 45, 25), panel_rect, border_radius=10)
@@ -34,65 +33,55 @@ class Palette:
         surface.blit(title, (self.PANEL_X + 40, MAP_Y - 5))
 
         for i, (tower, rect) in enumerate(zip(TOWER_TYPES, self.items_rects)):
-            # Fond item
             pygame.draw.rect(surface, tower["color"], rect, border_radius=8)
             overlay = pygame.Surface((rect.w, rect.h), pygame.SRCALPHA)
             pygame.draw.rect(overlay, (0, 0, 0, 60), (0, 0, rect.w, rect.h), border_radius=8)
             surface.blit(overlay, rect.topleft)
             pygame.draw.rect(surface, (200, 240, 180), rect, 1, border_radius=8)
 
-            # Icône
             draw_tower_icon(surface, tower, rect.x + 30, rect.centery - 5)
 
-            # Texte
-            name_surf = font.render(tower["name"], True, (240, 255, 220))
-            surface.blit(name_surf, (rect.x + 60, rect.y + 8))
-            cost_surf = font_small.render(f"💰 {tower['cost']}$", True, (255, 220, 80))
-            surface.blit(cost_surf, (rect.x + 60, rect.y + 28))
-            desc_surf = font_small.render(tower["desc"], True, (180, 220, 160))
-            surface.blit(desc_surf, (rect.x + 10, rect.y + 65))
+            name_surf  = font.render(tower["name"], True, (240, 255, 220))
+            cost_surf  = font_small.render(f"💰 {tower['cost']}$", True, (255, 220, 80))
+            range_surf = font_small.render(f"🎯 {tower['range_tiles']} tiles", True, (180, 230, 255))
+            desc_surf  = font_small.render(tower["desc"], True, (180, 220, 160))
 
-        # Légende
+            surface.blit(name_surf,  (rect.x + 60, rect.y + 5))
+            surface.blit(cost_surf,  (rect.x + 60, rect.y + 23))
+            surface.blit(range_surf, (rect.x + 60, rect.y + 40))
+            surface.blit(desc_surf,  (rect.x + 10, rect.y + 67))
+
         leg_y = MAP_Y + len(TOWER_TYPES) * self.ITEM_H + 10
-        pygame.draw.circle(surface, (50, 220, 50), (self.PANEL_X + 12, leg_y), 8)
-        surface.blit(font_small.render("Départ", True, TEXT_COLOR), (self.PANEL_X + 25, leg_y - 7))
-        pygame.draw.circle(surface, (220, 50, 50), (self.PANEL_X + 12, leg_y + 22), 8)
+        pygame.draw.circle(surface, (50, 220, 50),  (self.PANEL_X + 12, leg_y),      8)
+        surface.blit(font_small.render("Départ",  True, TEXT_COLOR), (self.PANEL_X + 25, leg_y - 7))
+        pygame.draw.circle(surface, (220, 50, 50),  (self.PANEL_X + 12, leg_y + 22), 8)
         surface.blit(font_small.render("Arrivée", True, TEXT_COLOR), (self.PANEL_X + 25, leg_y + 15))
+
 
 class Button:
     def __init__(self, text, x, y, w, h,
                  color=(40, 120, 60), hover_color=(60, 180, 90),
                  text_color=(220, 255, 210), font=None, border_radius=12):
-        self.text         = text
-        self.rect         = pygame.Rect(x, y, w, h)
-        self.color        = color
-        self.hover_color  = hover_color
-        self.text_color   = text_color
-        self.font         = font
+        self.text          = text
+        self.rect          = pygame.Rect(x, y, w, h)
+        self.color         = color
+        self.hover_color   = hover_color
+        self.text_color    = text_color
+        self.font          = font
         self.border_radius = border_radius
-        self._hovered     = False
+        self._hovered      = False
 
     def draw(self, surface):
-        mouse_pos = pygame.mouse.get_pos()
-        self._hovered = self.rect.collidepoint(mouse_pos)
+        self._hovered = self.rect.collidepoint(pygame.mouse.get_pos())
         col = self.hover_color if self._hovered else self.color
-
-        # Ombre portée
         shadow = self.rect.move(4, 4)
         pygame.draw.rect(surface, (0, 0, 0, 80), shadow, border_radius=self.border_radius)
-
-        # Corps du bouton
         pygame.draw.rect(surface, col, self.rect, border_radius=self.border_radius)
-
-        # Bordure lumineuse
         border_col = (120, 230, 140) if self._hovered else (60, 140, 80)
         pygame.draw.rect(surface, border_col, self.rect, 2, border_radius=self.border_radius)
-
-        # Texte centré
         if self.font:
             txt_surf = self.font.render(self.text, True, self.text_color)
-            txt_rect = txt_surf.get_rect(center=self.rect.center)
-            surface.blit(txt_surf, txt_rect)
+            surface.blit(txt_surf, txt_surf.get_rect(center=self.rect.center))
 
     def is_clicked(self, event):
         return (event.type == pygame.MOUSEBUTTONDOWN
@@ -100,20 +89,7 @@ class Button:
                 and self.rect.collidepoint(event.pos))
 
 
-# ── ÉCRAN DE MENU ─────────────────────────────────────────────────────────────
 class MenuScreen:
-    """
-    Affiche le menu principal du jeu.
-    Retourne STATE_PLAYING ou STATE_QUIT selon l'action de l'utilisateur.
-
-    Usage dans main :
-        menu = MenuScreen(screen)
-        state = menu.run()
-    """
-
-    # Chemin vers l'image de fond (à placer à côté des sources)
-
-
     def __init__(self, screen: pygame.Surface):
         self.screen = screen
         self.clock  = pygame.time.Clock()
@@ -125,25 +101,20 @@ class MenuScreen:
         self.font_btn    = pygame.font.SysFont("segoeui", 32, bold=True)
         self.font_hint   = pygame.font.SysFont("segoeui", 14)
 
-        # ── Image de fond ──
         self.background = self._load_background()
+        self.particles  = [self._new_particle(random_y=True) for _ in range(30)]
 
-        # ── Particules décoratives (feuilles) ──
-        self.particles = [self._new_particle(random_y=True) for _ in range(30)]
-
-        # ── Boutons ──
         btn_w, btn_h = 260, 58
         cx = self.w // 2
         self.btn_start = Button(
-            "▶  JOUER", cx - btn_w // 2, MENU_BTN_Y,
+            "▶  JOUER", cx - btn_w//2, MENU_BTN_Y,
             btn_w, btn_h, font=self.font_btn
         )
         self.btn_quit = Button(
-            "✕  QUITTER", cx - btn_w // 2, MENU_BTN_Y + 80,
+            "✕  QUITTER", cx - btn_w//2, MENU_BTN_Y + 80,
             btn_w, btn_h,
             color=(100, 40, 40), hover_color=(170, 60, 60),
-            text_color=(255, 200, 200),
-            font=self.font_btn
+            text_color=(255, 200, 200), font=self.font_btn
         )
 
         # ── Animation titre ──
@@ -153,19 +124,13 @@ class MenuScreen:
     # ── Helpers ─────────────────────────────────────────────────────────────
 
     def _load_background(self):
-        """Charge le fond PNG ; génère un dégradé de secours si absent."""
-        if os.path.exists(self.image):
-            bg = pygame.image.load(self.image).convert()
+        if os.path.exists(BG_IMAGE_PATH):
+            bg = pygame.image.load(BG_IMAGE_PATH).convert()
             return pygame.transform.scale(bg, (self.w, self.h))
-
-        # Dégradé de secours vert forêt → noir
         bg = pygame.Surface((self.w, self.h))
         for y in range(self.h):
             t = y / self.h
-            r = int(10  + t * 5)
-            g = int(60  - t * 30)
-            b = int(25  - t * 15)
-            pygame.draw.line(bg, (r, g, b), (0, y), (self.w, y))
+            pygame.draw.line(bg, (int(10+t*5), int(60-t*30), int(25-t*15)), (0, y), (self.w, y))
         return bg
 
     def _new_particle(self, random_y=False):
@@ -187,21 +152,16 @@ class MenuScreen:
 
     def _draw_particles(self):
         for p in self.particles:
-            s = pygame.Surface((p["size"] * 2, p["size"] * 2), pygame.SRCALPHA)
+            s = pygame.Surface((p["size"]*2, p["size"]*2), pygame.SRCALPHA)
             pygame.draw.circle(s, (120, 220, 100, p["alpha"]),
                                (p["size"], p["size"]), p["size"])
             self.screen.blit(s, (int(p["x"]), int(p["y"])))
-
-
-    # ── Boucle principale du menu ────────────────────────────────────────────
 
     def run(self) -> str:
         """Lance la boucle du menu et retourne l'état suivant."""
         music.play("menu")
         while True:
             self.clock.tick(FPS)
-
-            # ── Événements ──
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     return STATE_QUIT
@@ -212,17 +172,12 @@ class MenuScreen:
                 if self.btn_quit.is_clicked(event):
                     return STATE_QUIT
 
-            # ── Dessin ──
             self.screen.blit(self.background, (0, 0))
-
-            # Overlay sombre semi-transparent pour lisibilité
             overlay = pygame.Surface((self.w, self.h), pygame.SRCALPHA)
             overlay.fill((0, 0, 0, 90))
             self.screen.blit(overlay, (0, 0))
-
             self._update_particles()
             self._draw_particles()
             self.btn_start.draw(self.screen)
             self.btn_quit.draw(self.screen)
-
             pygame.display.flip()

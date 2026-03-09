@@ -8,23 +8,21 @@ MAP_Y = 60
 FPS = 60
 
 # ─── COULEURS ÉCOLOGIE ────────────────────────────────────────────────────────
-BG_COLOR        = (15, 30, 20)
-GRASS_COLOR     = (45, 100, 50)
-GRASS_DARK      = (35, 80, 40)
-PATH_COLOR      = (180, 140, 80)
-PATH_DARK       = (160, 120, 60)
-GRID_COLOR      = (20, 60, 25)
-COORD_COLOR     = (120, 200, 100)
-HEADER_COLOR    = (10, 25, 15)
-TEXT_COLOR      = (200, 240, 180)
-HIGHLIGHT       = (100, 220, 100, 80)
-SHADOW_COLOR    = (0, 0, 0, 120)
-
-TOWER_ZONE_COLOR = (60, 130, 60)
+BG_COLOR         = (15, 30, 20)
+GRASS_COLOR      = (45, 100, 50)
+GRASS_DARK       = (35, 80, 40)
+PATH_COLOR       = (180, 140, 80)
+PATH_DARK        = (160, 120, 60)
+GRID_COLOR       = (20, 60, 25)
+COORD_COLOR      = (120, 200, 100)
+HEADER_COLOR     = (10, 25, 15)
+TEXT_COLOR       = (200, 240, 180)
+HIGHLIGHT        = (100, 220, 100, 80)
+SHADOW_COLOR     = (0, 0, 0, 120)
+TOWER_ZONE_COLOR  = (60, 130, 60)
 TOWER_ZONE_BORDER = (80, 180, 80)
 
-# ─── CHEMIN DU MONSTRE (coordonnées en tiles) ─────────────────────────────────
-
+# ─── CHEMIN DU MONSTRE ───────────────────────────────────────────────────────
 ENEMY_PATH = [
     (0, 4), (1, 4), (2, 4), (3, 4),
     (3, 3), (3, 2), (4, 2), (5, 2),
@@ -38,13 +36,54 @@ ENEMY_PATH = [
 
 PATH_SET = set(ENEMY_PATH)
 
-# ─── TOURS DISPONIBLES ────────────────────────────────────
+# ─── TOURS DISPONIBLES ───────────────────────────────────────────────────────
+# range_tiles : rayon d'attaque en tiles
+# damage      : dégâts par tir
+# fire_rate   : tirs par seconde
+# slow        : facteur de ralentissement (1.0 = aucun, 0.5 = vitesse /2)
+# aoe         : rayon de zone en pixels (0 = pas d'AoE)
+# proj_color  : couleur du projectile
 TOWER_TYPES = [
-    {"name": "Arbre",    "emoji": "🌳", "color": (34, 120, 34),  "cost": 50,  "desc": "Ralentit les ennemis"},
-    {"name": "Solaire",  "emoji": "☀️",  "color": (220, 180, 0),  "cost": 100, "desc": "Dégâts zone"},
-    {"name": "Éolienne", "emoji": "💨",  "color": (80, 160, 220), "cost": 80,  "desc": "Tir rapide"},
-    {"name": "Compost",  "emoji": "🌿",  "color": (100, 160, 50), "cost": 60,  "desc": "Affaiblit ennemis"},
-    {"name": "Barrage",  "emoji": "💧",  "color": (40, 100, 200), "cost": 120, "desc": "Haute portée"},
+    {
+        "name": "Arbre",    "emoji": "🌳",
+        "color": (34, 120, 34),  "cost": 50,
+        "desc": "Ralentit les ennemis",
+        "range_tiles": 2.5, "damage": 5,  "fire_rate": 1.0,
+        "slow": 0.5,        "aoe": 0,
+        "proj_color": (100, 220, 80),
+    },
+    {
+        "name": "Solaire",  "emoji": "☀️",
+        "color": (220, 180, 0),  "cost": 100,
+        "desc": "Dégâts zone",
+        "range_tiles": 3.0, "damage": 20, "fire_rate": 0.6,
+        "slow": 1.0,        "aoe": 55,
+        "proj_color": (255, 220, 50),
+    },
+    {
+        "name": "Éolienne", "emoji": "💨",
+        "color": (80, 160, 220), "cost": 80,
+        "desc": "Tir rapide",
+        "range_tiles": 2.0, "damage": 8,  "fire_rate": 2.5,
+        "slow": 1.0,        "aoe": 0,
+        "proj_color": (180, 230, 255),
+    },
+    {
+        "name": "Compost",  "emoji": "🌿",
+        "color": (100, 160, 50), "cost": 60,
+        "desc": "Affaiblit ennemis",
+        "range_tiles": 2.0, "damage": 10, "fire_rate": 0.8,
+        "slow": 0.7,        "aoe": 0,
+        "proj_color": (180, 255, 100),
+    },
+    {
+        "name": "Barrage",  "emoji": "💧",
+        "color": (40, 100, 200), "cost": 120,
+        "desc": "Haute portée",
+        "range_tiles": 4.5, "damage": 15, "fire_rate": 0.9,
+        "slow": 0.8,        "aoe": 0,
+        "proj_color": (100, 180, 255),
+    },
 ]
 
 
@@ -54,6 +93,7 @@ STATE_PLAYING = "playing"
 STATE_QUIT    = "quit"
 
 
+# ─ IMAGE ─────────────────────────────────────────────────────────────────
 BG_IMAGE_PATH = "assets/sos_riviere.png"
 MUSIC_MENU_PATH = "assets/musique_menu.mp3"
 MUSIC_JEU_PATH  = "assets/musique_jeu.mp3"
