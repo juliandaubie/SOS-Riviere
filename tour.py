@@ -1,8 +1,17 @@
 import pygame
 import math
 from constantes import *
-from utils import tile_to_px, dist, draw_tower_icon, px_to_tile, is_valid_tile
-from projectile import Projectile
+from utils import tile_to_px, dist, draw_tower_icon
+from projectile import Projectile, TRAJ_LINEAR, TRAJ_PARABOLIC, TRAJ_LOBBED, TRAJ_WAVE
+
+# ── Trajectoire assignée à chaque type de tour ───────────────────────────────
+TOWER_TRAJECTORY = {
+    "Arbre":    TRAJ_PARABOLIC,  # arc flèche végétale
+    "Solaire":  TRAJ_LOBBED,     # bombe solaire arc haut + AoE
+    "Éolienne": TRAJ_LINEAR,     # tir rapide direct
+    "Compost":  TRAJ_PARABOLIC,  # arc organique
+    "Barrage":  TRAJ_WAVE,       # onde d'eau sinusoïdale
+}
 
 
 class PlacedTower:
@@ -12,30 +21,32 @@ class PlacedTower:
         self.row = row
         self.cx, self.cy = tile_to_px(col, row)
 
-        self.range_px  = tower_type["range_tiles"] * TILE_SIZE
-        self.damage    = tower_type["damage"]
-        self.fire_rate = tower_type["fire_rate"]
-        self.slow      = tower_type["slow"]
-        self.aoe       = tower_type["aoe"]
+        self.range_px   = tower_type["range_tiles"] * TILE_SIZE
+        self.damage     = tower_type["damage"]
+        self.fire_rate  = tower_type["fire_rate"]
+        self.slow       = tower_type["slow"]
+        self.aoe        = tower_type["aoe"]
         self.proj_color = tower_type["proj_color"]
+        self.traj       = TOWER_TRAJECTORY.get(tower_type["name"], TRAJ_LINEAR)
 
         self._cooldown = 0.0
 
     # ── Attaque ──────────────────────────────────────────────────────────────
+
     def update(self, dt, enemies, projectiles):
         self._cooldown -= dt
         if self._cooldown > 0:
             return
 
-        # Cible la plus avancée dans le chemin à portée
-        target = None
+        # Cible la plus avancée sur le chemin dans la portée
+        target   = None
         best_idx = -1
         for e in enemies:
             if not e.alive:
                 continue
             if dist(self.cx, self.cy, e.x, e.y) <= self.range_px and e.path_index > best_idx:
                 best_idx = e.path_index
-                target = e
+                target   = e
 
         if target is None:
             return
@@ -47,29 +58,31 @@ class PlacedTower:
             self.slow,
             self.aoe,
             self.proj_color,
+            traj=self.traj,
         ))
         self._cooldown = 1.0 / self.fire_rate
 
     # ── Dessin ───────────────────────────────────────────────────────────────
+
     def draw(self, surface, show_range=False):
         x, y = self.cx, self.cy
 
         if show_range:
             r = int(self.range_px)
-            range_surf = pygame.Surface((r*2 + 4, r*2 + 4), pygame.SRCALPHA)
+            rs = pygame.Surface((r*2+4, r*2+4), pygame.SRCALPHA)
             col = self.tower_type["color"]
-            pygame.draw.circle(range_surf, col + (30,), (r+2, r+2), r)
+            pygame.draw.circle(rs, col + (30,), (r+2, r+2), r)
             for angle in range(0, 360, 8):
                 rad = math.radians(angle)
-                px = int((r+2) + math.cos(rad) * r)
-                py = int((r+2) + math.sin(rad) * r)
-                pygame.draw.circle(range_surf, col + (180,), (px, py), 2)
-            surface.blit(range_surf, (x - r - 2, y - r - 2))
+                px  = int((r+2) + math.cos(rad) * r)
+                py  = int((r+2) + math.sin(rad) * r)
+                pygame.draw.circle(rs, col + (180,), (px, py), 2)
+            surface.blit(rs, (x - r - 2, y - r - 2))
 
-        bg_surf = pygame.Surface((TILE_SIZE - 4, TILE_SIZE - 4), pygame.SRCALPHA)
-        pygame.draw.rect(bg_surf, self.tower_type["color"] + (180,),
-                         (0, 0, TILE_SIZE - 4, TILE_SIZE - 4), border_radius=6)
-        surface.blit(bg_surf, (x - TILE_SIZE//2 + 2, y - TILE_SIZE//2 + 2))
+        bg = pygame.Surface((TILE_SIZE-4, TILE_SIZE-4), pygame.SRCALPHA)
+        pygame.draw.rect(bg, self.tower_type["color"] + (180,),
+                         (0, 0, TILE_SIZE-4, TILE_SIZE-4), border_radius=6)
+        surface.blit(bg, (x - TILE_SIZE//2 + 2, y - TILE_SIZE//2 + 2))
         draw_tower_icon(surface, self.tower_type, x, y - 2)
 
 
@@ -107,14 +120,14 @@ class DraggableItem:
         surface.blit(bg, (self.x - size, self.y - size))
         draw_tower_icon(surface, self.tower_type, self.x, self.y - 2, size - 4)
 
-        # Range preview pendant le drag
+        # Range preview
         r = int(self.tower_type["range_tiles"] * TILE_SIZE)
-        range_surf = pygame.Surface((r*2+4, r*2+4), pygame.SRCALPHA)
+        rs = pygame.Surface((r*2+4, r*2+4), pygame.SRCALPHA)
         col = self.tower_type["color"]
-        pygame.draw.circle(range_surf, col + (20,), (r+2, r+2), r)
+        pygame.draw.circle(rs, col + (20,), (r+2, r+2), r)
         for angle in range(0, 360, 8):
             rad = math.radians(angle)
-            px = int((r+2) + math.cos(rad) * r)
-            py = int((r+2) + math.sin(rad) * r)
-            pygame.draw.circle(range_surf, col + (140,), (px, py), 2)
-        surface.blit(range_surf, (self.x - r - 2, self.y - r - 2))
+            px  = int((r+2) + math.cos(rad) * r)
+            py  = int((r+2) + math.sin(rad) * r)
+            pygame.draw.circle(rs, col + (140,), (px, py), 2)
+        surface.blit(rs, (self.x - r - 2, self.y - r - 2))
