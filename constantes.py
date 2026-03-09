@@ -5,7 +5,6 @@ COLS = 14
 ROWS = 10
 MAP_X = 20
 MAP_Y = 60
-
 FPS = 60
 
 # ─── COULEURS ÉCOLOGIE ────────────────────────────────────────────────────────
@@ -47,3 +46,16 @@ TOWER_TYPES = [
     {"name": "Compost",  "emoji": "🌿",  "color": (100, 160, 50), "cost": 60,  "desc": "Affaiblit ennemis"},
     {"name": "Barrage",  "emoji": "💧",  "color": (40, 100, 200), "cost": 120, "desc": "Haute portée"},
 ]
+
+
+# ── ÉTAT DU JEU ──────────────────────────────────────────────────────────────
+STATE_MENU    = "menu"
+STATE_PLAYING = "playing"
+STATE_QUIT    = "quit"
+
+
+# ─ IMAGE ─────────────────────────────────────────────────────────────────
+BG_IMAGE_PATH = "assets/sos_riviere.png"
+
+
+MENU_BTN_Y = SCREEN_H // 2 + 160
