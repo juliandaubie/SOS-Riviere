@@ -30,7 +30,25 @@ def draw_tree(surface, x, y, size=20, color=(34, 120, 34)):
         pygame.draw.circle(alpha_surf, darker + (200,), (r, r), r)
         surface.blit(alpha_surf, (x - r, y - size//2 + i * 4 - r//2))
 
+_tower_images = {}
+
 def draw_tower_icon(surface, tower, x, y, size=22):
+    img_path = tower.get("image")
+    if img_path:
+        if img_path not in _tower_images:
+            import os
+            if os.path.exists(img_path):
+                img = pygame.image.load(img_path).convert_alpha()
+                _tower_images[img_path] = img
+            else:
+                _tower_images[img_path] = None
+
+        img = _tower_images[img_path]
+        if img:
+            scaled = pygame.transform.scale(img, (size * 2, size * 2))
+            surface.blit(scaled, (x - size, y - size))
+            return
+
     c = tower["color"]
     if tower["name"] == "Arbre":
         draw_tree(surface, x, y, size, c)

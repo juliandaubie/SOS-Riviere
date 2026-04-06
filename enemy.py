@@ -2,10 +2,11 @@ import pygame
 import math
 from constantes import *
 from utils import tile_to_px
-
+import os
 
 class Enemy:
     BASE_SPEED = 80
+    _image = None
 
     def __init__(self, hp=100, speed_mult=1.0):
         self.path_index  = 0
@@ -63,16 +64,27 @@ class Enemy:
         if not self.alive:
             return
         ix, iy = int(self.x), int(self.y)
-        r = 16
+        r = 32
 
-        color = (180, 40, 40) if self.slow_factor == 1.0 else (80, 80, 220)
-        pygame.draw.circle(surface, color, (ix, iy), r)
-        pygame.draw.circle(surface, (220, 80, 80), (ix, iy), r, 2)
+        if Enemy._image is None:
+            import os
+            if os.path.exists(ENEMY_IMAGE_PATH):
+                Enemy._image = pygame.image.load(ENEMY_IMAGE_PATH).convert_alpha()
+            else:
+                Enemy._image = False
 
-        pygame.draw.circle(surface, (255, 255, 200), (ix - 5, iy - 4), 4)
-        pygame.draw.circle(surface, (255, 255, 200), (ix + 5, iy - 4), 4)
-        pygame.draw.circle(surface, (30, 10, 10),   (ix - 5, iy - 4), 2)
-        pygame.draw.circle(surface, (30, 10, 10),   (ix + 5, iy - 4), 2)
+        if Enemy._image:
+            size = r * 2
+            scaled = pygame.transform.scale(Enemy._image, (size, size))
+            surface.blit(scaled, (ix - r, iy - r))
+        else:
+            color = (180, 40, 40) if self.slow_factor == 1.0 else (80, 80, 220)
+            pygame.draw.circle(surface, color, (ix, iy), r)
+            pygame.draw.circle(surface, (220, 80, 80), (ix, iy), r, 2)
+            pygame.draw.circle(surface, (255, 255, 200), (ix - 5, iy - 4), 4)
+            pygame.draw.circle(surface, (255, 255, 200), (ix + 5, iy - 4), 4)
+            pygame.draw.circle(surface, (30, 10, 10), (ix - 5, iy - 4), 2)
+            pygame.draw.circle(surface, (30, 10, 10), (ix + 5, iy - 4), 2)
 
         bar_w, bar_h = 34, 5
         bx = ix - bar_w // 2

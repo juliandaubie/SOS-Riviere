@@ -2,12 +2,23 @@ import pygame
 from constantes import *
 from utils import tile_to_px, px_to_tile, is_valid_tile
 from tour import PlacedTower
-
+import os
 
 class Map:
     def __init__(self):
         self.towers = []
         self.hovered_tile = None
+        self.bg_image = self._load_bg()
+
+    def _load_bg(self):
+        print(f"[DEBUG] Chemin : {MAP_BG_IMAGE_PATH}")
+        print(f"[DEBUG] Existe : {os.path.exists(MAP_BG_IMAGE_PATH)}")
+        if os.path.exists(MAP_BG_IMAGE_PATH):
+            img = pygame.image.load(MAP_BG_IMAGE_PATH).convert()
+            print("[DEBUG] Image chargée OK")
+            return pygame.transform.scale(img, (COLS * TILE_SIZE, ROWS * TILE_SIZE))
+        print("[DEBUG] Image NON trouvée")
+        return None
 
     def can_place(self, col, row):
         if not is_valid_tile(col, row):
@@ -33,17 +44,20 @@ class Map:
         return None
 
     def draw(self, surface, font_small, hovered_tower=None):
+        if self.bg_image:
+            surface.blit(self.bg_image, (MAP_X, MAP_Y))
         for row in range(ROWS):
             for col in range(COLS):
                 x = MAP_X + col * TILE_SIZE
                 y = MAP_Y + row * TILE_SIZE
 
-                if (col, row) in PATH_SET:
-                    color = PATH_COLOR if (col + row) % 2 == 0 else PATH_DARK
-                else:
-                    color = GRASS_COLOR if (col + row) % 2 == 0 else GRASS_DARK
+                if not self.bg_image:
+                    if (col, row) in PATH_SET:
+                        color = PATH_COLOR if (col + row) % 2 == 0 else PATH_DARK
+                    else:
+                        color = GRASS_COLOR if (col + row) % 2 == 0 else GRASS_DARK
 
-                pygame.draw.rect(surface, color, (x, y, TILE_SIZE, TILE_SIZE))
+                    pygame.draw.rect(surface, color, (x, y, TILE_SIZE, TILE_SIZE))
 
                 if self.hovered_tile == (col, row):
                     h_surf = pygame.Surface((TILE_SIZE, TILE_SIZE), pygame.SRCALPHA)
