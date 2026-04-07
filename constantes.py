@@ -51,7 +51,7 @@ TOWER_TYPES = [
         "range_tiles": 2.5, "damage": 5,  "fire_rate": 1.0,
         "slow": 0.5,        "aoe": 0,
         "proj_color": (100, 220, 80),
-        "image": r"C:\Users\natha\PycharmProjects\SOS-Riviere\assets\arbre.png",
+        "image": r"assets\arbre.png",
     },
     {
         "name": "Solaire",  "emoji": "☀️",
@@ -60,7 +60,7 @@ TOWER_TYPES = [
         "range_tiles": 3.0, "damage": 20, "fire_rate": 0.6,
         "slow": 1.0,        "aoe": 55,
         "proj_color": (255, 220, 50),
-        "image": r"C:\Users\natha\PycharmProjects\SOS-Riviere\assets\solaire.png",
+        "image": r"assets\solaire.png",
     },
     {
         "name": "Éolienne", "emoji": "💨",
@@ -69,7 +69,7 @@ TOWER_TYPES = [
         "range_tiles": 2.0, "damage": 8,  "fire_rate": 2.5,
         "slow": 1.0,        "aoe": 0,
         "proj_color": (180, 230, 255),
-        "image": r"C:\Users\natha\PycharmProjects\SOS-Riviere\assets\eolienne.png",
+        "image": r"assets\eolienne.png",
     },
     {
         "name": "Compost",  "emoji": "🌿",
@@ -78,7 +78,7 @@ TOWER_TYPES = [
         "range_tiles": 2.0, "damage": 10, "fire_rate": 0.8,
         "slow": 0.7,        "aoe": 0,
         "proj_color": (180, 255, 100),
-        "image": r"C:\Users\natha\PycharmProjects\SOS-Riviere\assets\compost.png",
+        "image": r"assets\compost.png",
     },
     {
         "name": "Barrage",  "emoji": "💧",
@@ -87,7 +87,7 @@ TOWER_TYPES = [
         "range_tiles": 4.5, "damage": 15, "fire_rate": 0.9,
         "slow": 0.8,        "aoe": 0,
         "proj_color": (100, 180, 255),
-        "image": r"C:\Users\natha\PycharmProjects\SOS-Riviere\assets\barrage.png",
+        "image": r"assets\barrage.png",
     },
 ]
 
@@ -108,4 +108,4 @@ MENU_BTN_Y = SCREEN_H // 2 + 160
 
 MAP_BG_IMAGE_PATH = "assets/map_bg.png"
 
-ENEMY_IMAGE_PATH = r"C:\Users\natha\PycharmProjects\SOS-Riviere\assets\dechet.png"
+ENEMY_IMAGE_PATH = r"assets\dechet.png"
