@@ -43,45 +43,31 @@ class Map:
                 return t
         return None
 
-    def draw(self, surface, font_small, hovered_tower=None):
+    def draw(self, surface, font_small, hovered_tower=None, dragging_item=None):
         if self.bg_image:
             surface.blit(self.bg_image, (MAP_X, MAP_Y))
-        for row in range(ROWS):
-            for col in range(COLS):
-                x = MAP_X + col * TILE_SIZE
-                y = MAP_Y + row * TILE_SIZE
 
-                if not self.bg_image:
-                    if (col, row) in PATH_SET:
-                        color = PATH_COLOR if (col + row) % 2 == 0 else PATH_DARK
-                    else:
-                        color = GRASS_COLOR if (col + row) % 2 == 0 else GRASS_DARK
-
-                    pygame.draw.rect(surface, color, (x, y, TILE_SIZE, TILE_SIZE))
-
-                if self.hovered_tile == (col, row):
-                    h_surf = pygame.Surface((TILE_SIZE, TILE_SIZE), pygame.SRCALPHA)
-                    fill = (220, 50, 50, 80) if (col, row) in PATH_SET else (100, 220, 100, 80)
-                    h_surf.fill(fill)
-                    surface.blit(h_surf, (x, y))
-
-                pygame.draw.rect(surface, GRID_COLOR, (x, y, TILE_SIZE, TILE_SIZE), 1)
-                coord_text = font_small.render(f"{col},{row}", True, COORD_COLOR)
-                surface.blit(coord_text, (x + 2, y + 2))
-
-        for i in range(len(ENEMY_PATH) - 1):
-            c1, r1 = ENEMY_PATH[i]
-            c2, r2 = ENEMY_PATH[i + 1]
-            x1, y1 = tile_to_px(c1, r1)
-            x2, y2 = tile_to_px(c2, r2)
-            pygame.draw.line(surface, (220, 100, 30), (x1, y1), (x2, y2), 3)
-
-        sx, sy = tile_to_px(*ENEMY_PATH[0])
         ex, ey = tile_to_px(*ENEMY_PATH[-1])
-        pygame.draw.circle(surface, (50, 220, 50), (sx, sy), 10)
         pygame.draw.circle(surface, (220, 50, 50), (ex, ey), 10)
 
-        # Dessine d'abord les ranges, puis les tours par-dessus
+        # Grille visible uniquement pendant un drag
+        if dragging_item:
+            for row in range(ROWS):
+                for col in range(COLS):
+                    x = MAP_X + col * TILE_SIZE
+                    y = MAP_Y + row * TILE_SIZE
+
+                    if self.hovered_tile == (col, row):
+                        h_surf = pygame.Surface((TILE_SIZE, TILE_SIZE), pygame.SRCALPHA)
+                        fill = (220, 50, 50, 80) if (col, row) in PATH_SET else (100, 220, 100, 80)
+                        h_surf.fill(fill)
+                        surface.blit(h_surf, (x, y))
+
+                    pygame.draw.rect(surface, GRID_COLOR, (x, y, TILE_SIZE, TILE_SIZE), 1)
+                    coord_text = font_small.render(f"{col},{row}", True, COORD_COLOR)
+                    surface.blit(coord_text, (x + 2, y + 2))
+
+        # Tours par-dessus la grille
         for tower in self.towers:
             tower.draw(surface, show_range=(tower is hovered_tower))
 

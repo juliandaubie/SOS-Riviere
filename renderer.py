@@ -78,7 +78,7 @@ def draw_frame(screen, font, font_small, font_big,
     draw_header(screen, font_big, font_small, score, lives)
 
     # Carte (avec range de la tour survolée)
-    game_map.draw(screen, font_small, hovered_tower=hovered_tower)
+    game_map.draw(screen, font_small, hovered_tower=hovered_tower,dragging_item=dragging_item)
 
     palette.draw(screen, font, font_small)
 
