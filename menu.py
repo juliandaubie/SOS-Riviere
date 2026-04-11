@@ -7,23 +7,27 @@ import music
 
 
 # ─── Palette latérale ────────────────────────────────────────────────────────
+# Palette des tours à placer (droite de la carte)
 class Palette:
     PANEL_X = MAP_X + COLS * TILE_SIZE + 22
     PANEL_W = 192
     ITEM_H  = 86
 
+    # Initialise rects des 5 tours
     def __init__(self):
         self.items_rects = []
         for i in range(len(TOWER_TYPES)):
             y = MAP_Y + i * self.ITEM_H
             self.items_rects.append(pygame.Rect(self.PANEL_X, y, self.PANEL_W, self.ITEM_H - 5))
 
+    # Retourne type tour/centre si clic dedans, else None
     def get_tower_at(self, mx, my):
         for i, rect in enumerate(self.items_rects):
             if rect.collidepoint(mx, my):
                 return TOWER_TYPES[i], rect.centerx, rect.centery
         return None, 0, 0
 
+    # Dessine palette : panel, icônes tours, prix/range/desc (gris si pas argent)
     def draw(self, surface, font, font_small, money=0):
         panel_rect = pygame.Rect(self.PANEL_X - 10, MAP_Y - 10,
                                  self.PANEL_W + 20, ROWS * TILE_SIZE + 20)
@@ -69,10 +73,12 @@ class Palette:
 
 
 # ─── Panel d'upgrade (affiché quand on survole une tour placée) ──────────────
+# Affiche stats tour, upgrade possible (desc/prix), message éco
 class UpgradePanel:
     W = 200
     H = 160
 
+    # Dessine panel à côté curseur (name, stats, upgrade info si possible)
     def draw(self, surface, tower, mx, my, font, font_small, money):
         if tower is None:
             return
@@ -107,7 +113,7 @@ class UpgradePanel:
         y += 6
 
         if tower.can_upgrade():
-            stars = "" * (tower.upgrade_level + 1)
+            stars = "★" * (tower.upgrade_level + 1)
             lvl = font_small.render(f"Upgrade {stars}", True, (255, 220, 80))
             surface.blit(lvl, (px + 10, y))
             y += 14
@@ -134,6 +140,7 @@ class UpgradePanel:
 
 
 # ─── Bouton générique ────────────────────────────────────────────────────────
+# Classe bouton réutilisable avec hover, shadow, border
 class Button:
     def __init__(self, text, x, y, w, h,
                  color=(40, 120, 60), hover_color=(60, 180, 90),
@@ -146,6 +153,7 @@ class Button:
         self.font          = font
         self.border_radius = border_radius
 
+    # Dessine bouton avec effet hover/shadow
     def draw(self, surface):
         hovered = self.rect.collidepoint(pygame.mouse.get_pos())
         col = self.hover_color if hovered else self.color
@@ -158,6 +166,7 @@ class Button:
             txt = self.font.render(self.text, True, self.text_color)
             surface.blit(txt, txt.get_rect(center=self.rect.center))
 
+    # Détecte clic gauche sur bouton
     def is_clicked(self, event):
         return (event.type == pygame.MOUSEBUTTONDOWN
                 and event.button == 1
@@ -165,6 +174,7 @@ class Button:
 
 
 # ─── Écran de menu ───────────────────────────────────────────────────────────
+# Écran titre avec fond animé, particules, boutons Jouer/Quitter, slogans
 class MenuScreen:
     def __init__(self, screen: pygame.Surface):
         self.screen = screen
@@ -196,6 +206,7 @@ class MenuScreen:
         self.slogan_idx = 0
         self.slogan_timer = 0
 
+    # Charge/scale fond menu ou génère dégradé
     def _load_background(self):
         if os.path.exists(BG_IMAGE_PATH):
             bg = pygame.image.load(BG_IMAGE_PATH).convert()
@@ -206,6 +217,7 @@ class MenuScreen:
             pygame.draw.line(bg, (int(10+t*5), int(60-t*30), int(25-t*15)), (0, y), (self.w, y))
         return bg
 
+    # Crée nouvelle particule flottante (position, speed, color random)
     def _new_particle(self, random_y=False):
         return {
             "x":     random.randint(0, self.w),
@@ -217,6 +229,7 @@ class MenuScreen:
             "color": random.choice([(120, 220, 100), (80, 200, 220), (200, 220, 80)]),
         }
 
+    # Met à jour positions particules (loop infini)
     def _update_particles(self):
         for p in self.particles:
             p["y"] += p["speed"]
@@ -224,6 +237,7 @@ class MenuScreen:
             if p["y"] > self.h + 10:
                 p.update(self._new_particle())
 
+    # Dessine toutes les particules
     def _draw_particles(self):
         for p in self.particles:
             s = pygame.Surface((p["size"]*2, p["size"]*2), pygame.SRCALPHA)
@@ -231,6 +245,7 @@ class MenuScreen:
                                (p["size"], p["size"]), p["size"])
             self.screen.blit(s, (int(p["x"]), int(p["y"])))
 
+    # Boucle menu : events (boutons), update particles/slogans, render titre/boutons
     def run(self) -> str:
         music.play("menu")
         while True:
@@ -277,3 +292,4 @@ class MenuScreen:
             self.btn_quit.draw(self.screen)
 
             pygame.display.flip()
+

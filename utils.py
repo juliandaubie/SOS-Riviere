@@ -2,22 +2,29 @@ import pygame
 import math
 from constantes import *
 
+# Fonctions utilitaires pour conversions coordonnées, distance, rendu icônes tours/arbre
+
+# Convertit coordonnées tile (col,row) en pixels centre
 def tile_to_px(col, row):
     x = MAP_X + col * TILE_SIZE + TILE_SIZE // 2
     y = MAP_Y + row * TILE_SIZE + TILE_SIZE // 2
     return x, y
 
+# Convertit pixels en coordonnées tile (col,row)
 def px_to_tile(x, y):
     col = (x - MAP_X) // TILE_SIZE
     row = (y - MAP_Y) // TILE_SIZE
     return col, row
 
+# Vérifie si tile dans limites grille (0..COLS-1, 0..ROWS-1)
 def is_valid_tile(col, row):
     return 0 <= col < COLS and 0 <= row < ROWS
 
+# Distance euclidienne entre 2 points
 def dist(ax, ay, bx, by):
     return math.hypot(ax - bx, ay - by)
 
+# Dessine un arbre stylisé (pour fallback icône)
 def draw_tree(surface, x, y, size=20, color=(34, 120, 34)):
     trunk_w = max(2, size // 4)
     trunk_h = max(2, size // 3)
@@ -30,8 +37,9 @@ def draw_tree(surface, x, y, size=20, color=(34, 120, 34)):
         pygame.draw.circle(alpha_surf, darker + (200,), (r, r), r)
         surface.blit(alpha_surf, (x - r, y - size//2 + i * 4 - r//2))
 
-_tower_images = {}
+_tower_images = {}  # Cache images tours
 
+# Dessine icône tour : image si dispo, sinon fallback procédural par type
 def draw_tower_icon(surface, tower, x, y, size=22):
     img_path = tower.get("image")
     if img_path:
@@ -74,3 +82,4 @@ def draw_tower_icon(surface, tower, x, y, size=22):
     elif tower["name"] == "Barrage":
         pygame.draw.rect(surface, c, (x - size//2, y - size//3, size, int(size//1.5)))
         pygame.draw.rect(surface, (60, 140, 255), (x - size//2 + 2, y, size - 4, size//3))
+

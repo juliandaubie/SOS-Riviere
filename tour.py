@@ -4,6 +4,7 @@ from constantes import *
 from utils import tile_to_px, dist, draw_tower_icon
 from projectile import Projectile, TRAJ_LINEAR, TRAJ_PARABOLIC, TRAJ_LOBBED, TRAJ_WAVE
 
+# Mapping nom tour -> type trajectoire projectile
 TOWER_TRAJECTORY = {
     "Arbre":    TRAJ_PARABOLIC,
     "Solaire":  TRAJ_LOBBED,
@@ -13,7 +14,9 @@ TOWER_TRAJECTORY = {
 }
 
 
+# Classe tour placée sur carte : attaque auto ennemis, upgrades
 class PlacedTower:
+    # Initialisation avec type, pos tile, applique stats base
     def __init__(self, tower_type, col, row):
         self.tower_type  = tower_type
         self.col = col
@@ -25,6 +28,7 @@ class PlacedTower:
         self._cooldown = 0.0
         self._shoot_anim = 0.0   # flash visuel au tir
 
+    # Applique stats base + upgrades cumulés
     def _apply_stats(self):
         t = self.tower_type
         self.range_px  = t["range_tiles"] * TILE_SIZE
@@ -42,19 +46,23 @@ class PlacedTower:
             self.fire_rate += up["fire_rate_bonus"]
             self.slow       = max(0.1, self.slow + up.get("slow_bonus", 0))
 
+    # Vérifie si upgrade possible (niveau < 3)
     def can_upgrade(self):
         return self.upgrade_level < len(self.tower_type["upgrades"])
 
+    # Coût prochain upgrade
     def upgrade_cost(self):
         if not self.can_upgrade():
             return None
         return self.tower_type["upgrades"][self.upgrade_level]["cost"]
 
+    # Desc prochain upgrade ou "MAX"
     def upgrade_desc(self):
         if not self.can_upgrade():
             return "MAX"
         return self.tower_type["upgrades"][self.upgrade_level]["desc"]
 
+    # Applique upgrade suivant et recalcule stats
     def do_upgrade(self):
         if self.can_upgrade():
             self.upgrade_level += 1
@@ -62,6 +70,7 @@ class PlacedTower:
 
     # ── Attaque ──────────────────────────────────────────────────────────────
 
+    # Update : cible ennemi le plus avancé en range, tire si cooldown ok, anim flash
     def update(self, dt, enemies, projectiles):
         self._cooldown -= dt
         if self._shoot_anim > 0:
@@ -92,6 +101,7 @@ class PlacedTower:
 
     # ── Dessin ───────────────────────────────────────────────────────────────
 
+    # Rendu : range si hovered, flash tir, icône, badge niveau
     def draw(self, surface, show_range=False):
         x, y = self.cx, self.cy
 
@@ -130,7 +140,9 @@ class PlacedTower:
             surface.blit(s, (x - s.get_width()//2, y + TILE_SIZE//2 - 14))
 
 
+# Preview tour pendant drag depuis palette
 class DraggableItem:
+    # Init avec type, pos origin
     def __init__(self, tower_type, origin_x, origin_y):
         self.tower_type = tower_type
         self.x = origin_x
@@ -139,19 +151,23 @@ class DraggableItem:
         self.offset_x = 0
         self.offset_y = 0
 
+    # Commence drag : calc offset curseur
     def start_drag(self, mouse_x, mouse_y):
         self.dragging = True
         self.offset_x = self.x - mouse_x
         self.offset_y = self.y - mouse_y
 
+    # Update pos follow curseur
     def update(self, mouse_x, mouse_y):
         if self.dragging:
             self.x = mouse_x + self.offset_x
             self.y = mouse_y + self.offset_y
 
+    # Arrête drag
     def stop_drag(self):
         self.dragging = False
 
+    # Rendu drag preview : icône + range circle + shadow
     def draw(self, surface, alpha=255):
         size = 30
         shadow = pygame.Surface((size*2+10, size*2+10), pygame.SRCALPHA)
@@ -174,3 +190,4 @@ class DraggableItem:
             py  = int((r+2) + math.sin(rad) * r)
             pygame.draw.circle(rs, col + (150,), (px, py), 2)
         surface.blit(rs, (self.x - r - 2, self.y - r - 2))
+

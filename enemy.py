@@ -3,11 +3,11 @@ import math
 from constantes import *
 from utils import tile_to_px
 
-
-class Enemy:
+# création de la classe Enemy pour gérer les ennemis dans le jeu
+class Enemy: 
     _image      = None
     _image_boss = None
-
+#initialisation de la classe Enemy avec les paramètres de base pour les ennemis, y compris les points de vie, la vitesse, la récompense et si c'est un boss ou non
     def __init__(self, hp=100, speed_mult=1.0, reward=10, is_boss=False):
         self.path_index  = 0
         self.max_hp      = hp
@@ -24,17 +24,17 @@ class Enemy:
         sx, sy = tile_to_px(*ENEMY_PATH[0])
         self.x = float(sx)
         self.y = float(sy)
-
+#fonction pour infliger des dégâts à l'ennemi, mettant à jour sa santé et son état de vie en conséquence
     def take_damage(self, dmg):
         self.hp -= dmg
         if self.hp <= 0:
             self.alive = False
-
+#fonction pour appliquer un effet de ralentissement à l'ennemi, réduisant sa vitesse pendant une durée spécifiée
     def apply_slow(self, factor, duration=1.5):
         if factor < self.slow_factor or self.slow_timer <= 0:
             self.slow_factor = factor
             self.slow_timer  = duration
-
+#fonction pour mettre à jour si l'ennemi est vivant ou s'il a atteint la fin du chemin, et pour gérer son mouvement le long du chemin défini
     def update(self, dt):
         if not self.alive or self.reached_end:
             return
@@ -61,7 +61,7 @@ class Enemy:
         else:
             self.x += dx / d * move
             self.y += dy / d * move
-
+#fonction pour afficher les ennemis à l'écran, en utilisant des images si disponibles ou des formes de base, et en affichant des éléments visuels pour les boss et les ennemis ralentis
     def draw(self, surface):
         if not self.alive:
             return

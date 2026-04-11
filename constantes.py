@@ -1,6 +1,13 @@
 import os
 
+"""
+Module constantes.py : Toutes les configurations du jeu SOS-Riviere
+Définit dimensions écran, couleurs, chemin ennemis, système vagues, tours (5 types + upgrades),
+argent initial, états, chemins assets.
+"""
+
 # ─── CONFIG ───────────────────────────────────────────────────────────────────
+# Dimensions écran, taille tiles, grille carte, FPS
 SCREEN_W, SCREEN_H = 1200, 750
 TILE_SIZE = 60
 COLS = 14
@@ -10,6 +17,7 @@ MAP_Y = 70
 FPS = 60
 
 # ─── COULEURS ─────────────────────────────────────────────────────────────────
+# Palette couleurs pour fond, herbe, chemin, grille, textes, effets
 BG_COLOR          = (8, 18, 12)
 GRASS_COLOR       = (45, 100, 50)
 GRASS_DARK        = (35, 80, 40)
@@ -26,6 +34,7 @@ TOWER_ZONE_BORDER = (80, 180, 80)
 PANEL_BG          = (10, 28, 15)
 
 # ─── CHEMIN DU MONSTRE ───────────────────────────────────────────────────────
+# Coordonnées tiles du chemin que suivent les ennemis (pollution)
 ENEMY_PATH = [
     (0, 4), (1, 4), (2, 4), (3, 4),
     (3, 3), (3, 2), (4, 2), (5, 2),
@@ -36,11 +45,25 @@ ENEMY_PATH = [
     (11, 3), (11, 4), (11, 5), (11, 6), (11, 7),
     (12, 7), (13, 7),
 ]
-PATH_SET = set(ENEMY_PATH)
+PATH_SET = set(ENEMY_PATH)  # Pour vérifications rapides
 
-# ─── SYSTEM DE VAGUES ────────────────────────────────────────────────────────
-# Chaque vague : liste de (hp, speed_mult, reward)
+# ─── SYSTEME DE VAGUES ────────────────────────────────────────────────────────
+# Intervalles spawn et pause entre vagues
+WAVE_SPAWN_INTERVAL = 2   # secondes entre chaque ennemi dans une vague
+WAVE_BREAK_DURATION = 8.0   # secondes entre les vagues
+
+# Génère liste d'ennemis pour une vague (hp, speed, reward croissants)
+# Ajoute boss tous les 5 vagues
 def generate_wave(wave_num):
+    """
+    Génère les ennemis d'une vague basée sur le numéro de vague.
+    
+    Args:
+        wave_num (int): Numéro de vague (1+)
+    
+    Returns:
+        list[dict]: Liste d'ennemis {"hp": int, "speed_mult": float, "reward": int, "is_boss": bool?}
+    """
     enemies = []
     count = 5 + wave_num * 2
     hp = int(80 * (1.3 ** (wave_num - 1)))
@@ -48,19 +71,17 @@ def generate_wave(wave_num):
     reward = 10 + wave_num * 2
     for _ in range(count):
         enemies.append({"hp": hp, "speed_mult": speed, "reward": reward})
-    # Boss tous les 5 vagues
+    # Boss tous les 5 vagues (x5 hp, x0.7 speed, x5 reward)
     if wave_num % 5 == 0:
         enemies.append({"hp": hp * 5, "speed_mult": speed * 0.7, "reward": reward * 5, "is_boss": True})
     return enemies
 
-WAVE_SPAWN_INTERVAL = 2   # secondes entre chaque ennemi dans une vague
-WAVE_BREAK_DURATION = 8.0   # secondes entre les vagues
-
 # ─── ARGENT ──────────────────────────────────────────────────────────────────
-STARTING_MONEY = 200
+STARTING_MONEY = 200  # Argent de départ pour acheter tours
 
 # ─── TOURS ───────────────────────────────────────────────────────────────────
-# upgrades: liste de dict {cost, damage_bonus, range_bonus, fire_rate_bonus, desc}
+# Liste de 5 types de tours écologiques avec stats, upgrades (3 niveaux chacun)
+# Clés: name, emoji/color/cost/desc/eco_msg, range_tiles, damage, fire_rate, slow/aoe, proj_color, image, upgrades[list dict]
 TOWER_TYPES = [
     {
         "name": "Arbre",    "emoji": "",
@@ -145,6 +166,7 @@ STATE_PLAYING = "playing"
 STATE_QUIT    = "quit"
 
 # ─── ASSETS ──────────────────────────────────────────────────────────────────
+# Chemins images/musiques (relatifs à assets/)
 BG_IMAGE_PATH     = os.path.join("assets", "sos_riviere.png")
 MUSIC_MENU_PATH   = os.path.join("assets", "musique_menu.mp3")
 MUSIC_JEU_PATH    = os.path.join("assets", "musique_jeu.mp3")
@@ -153,7 +175,9 @@ MAP_BG_IMAGE_PATH = os.path.join("assets", "map_bg.png")
 ENEMY_IMAGE_PATH  = os.path.join("assets", "dechet.png")
 MENU_BTN_Y        = SCREEN_H // 2 + 160
 
+# Types de trajectoires projectiles
 TRAJ_LINEAR = "linear"
 TRAJ_PARABOLIC = "parabolic"
 TRAJ_LOBBED = "lobbed"
 TRAJ_WAVE = "wave"
+

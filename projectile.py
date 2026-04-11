@@ -3,6 +3,7 @@ import math
 from constantes import *
 
 
+# Prédit position future ennemi pour viser juste (itératif sur chemin)
 def predict_position(enemy, proj_speed, src_x, src_y):
     """
     Prédit où sera l'ennemi quand le projectile l'atteint.
@@ -43,8 +44,10 @@ def predict_position(enemy, proj_speed, src_x, src_y):
     return ex, ey
 
 
+# Classe projectile : mouvement (4 types), hit AOE/single, trail glow
 class Projectile:
 
+    # Vitesse par type trajectoire
     SPEEDS = {
         TRAJ_LINEAR:    340,
         TRAJ_PARABOLIC: 220,
@@ -52,6 +55,7 @@ class Projectile:
         TRAJ_WAVE:      260,
     }
 
+    # Init : src, target prédit, stats, traj -> calc dst, params wave
     def __init__(self, src_x, src_y, target, damage, slow_factor, aoe_radius, color, traj=TRAJ_LINEAR):
         self.src_x       = float(src_x)
         self.src_y       = float(src_y)
@@ -83,6 +87,7 @@ class Projectile:
 
     # ── Mise à jour ──────────────────────────────────────────────────────────
 
+    # Avance selon traj (linear/parabola/lobbed/wave), ajoute trail, hit si fini
     def update(self, dt, enemies):
         if not self.alive:
             return
@@ -128,6 +133,7 @@ class Projectile:
         if t >= 1.0:
             self._on_hit(enemies)
 
+    # Applique dégâts AOE ou single (plus proche), slow si applicable
     def _on_hit(self, enemies):
         self.alive = False
         ix, iy = self.dst_x, self.dst_y
@@ -154,6 +160,7 @@ class Projectile:
 
     # ── Dessin ───────────────────────────────────────────────────────────────
 
+    # Rendu avec trail fading + style spécifique traj (line/glow/ombre/wave)
     def draw(self, surface):
         if not self.alive:
             return
@@ -211,3 +218,4 @@ class Projectile:
             pygame.draw.circle(glow, self.color + (100,),
                                (self.radius + 2, self.radius + 2), self.radius + 2)
             surface.blit(glow, (ix - self.radius, iy - self.radius))
+

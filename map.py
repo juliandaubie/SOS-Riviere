@@ -6,7 +6,9 @@ from tour import PlacedTower
 import os
 
 
+# Classe Map : gère la carte de jeu (placement tours, pollution, rendu)
 class Map:
+    # Initialisation de la carte : liste tours, hover, bg image, pollution=0.0
     def __init__(self):
         self.towers        = []
         self.hovered_tile  = None
@@ -16,20 +18,24 @@ class Map:
         self._pollution_surf = None
         self._dirty_surf_cache = {}
 
+    # Charge et scale l'image de fond carte si existe
     def _load_bg(self):
         if os.path.exists(MAP_BG_IMAGE_PATH):
             img = pygame.image.load(MAP_BG_IMAGE_PATH).convert()
             return pygame.transform.scale(img, (COLS * TILE_SIZE, ROWS * TILE_SIZE))
         return None
 
+    # Augmente pollution quand déchet atteint fin ou meurt dans l'eau
     def add_pollution(self, amount=0.015):
         """Appelé quand un déchet atteint la fin ou meurt dans l'eau."""
         self.pollution = min(1.0, self.pollution + amount)
 
+    # Réduit pollution quand déchet détruit par tour
     def reduce_pollution(self, amount=0.005):
         """Appelé quand un déchet est détruit par une tour."""
         self.pollution = max(0.0, self.pollution - amount)
 
+    # Vérifie si placement tour possible (pas chemin, pas occupé, valide)
     def can_place(self, col, row):
         if not is_valid_tile(col, row):
             return False
@@ -40,12 +46,14 @@ class Map:
                 return False
         return True
 
+    # Place nouvelle tour si possible, retourne True/False
     def place_tower(self, tower_type, col, row):
         if self.can_place(col, row):
             self.towers.append(PlacedTower(tower_type, col, row))
             return True
         return False
 
+    # Retourne tour à position px (pour hover/upgrade)
     def get_tower_at_px(self, mx, my):
         col, row = px_to_tile(mx, my)
         for t in self.towers:
@@ -53,6 +61,7 @@ class Map:
                 return t
         return None
 
+    # Calcule couleur pollution interpolée bleu -> marron + alpha
     def _get_pollution_color(self):
         """Interpolation eau bleue → marron pollué."""
         p = self.pollution
@@ -61,6 +70,7 @@ class Map:
         b = int(180 - p * 140)
         return (r, g, b, int(80 + p * 130))
 
+    # Rendu carte : fond, pollution overlay, grille (drag), tours, bordure
     def draw(self, surface, font_small, hovered_tower=None, dragging_item=None):
         # ── Fond de carte ────────────────────────────────────────────────────
         if self.bg_image:
@@ -119,3 +129,4 @@ class Map:
                        (180, 120, 40) if self.pollution < 0.7 else (180, 60, 40)
         pygame.draw.rect(surface, border_color,
                          (MAP_X - 2, MAP_Y - 2, COLS * TILE_SIZE + 4, ROWS * TILE_SIZE + 4), 3)
+

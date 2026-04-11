@@ -3,7 +3,10 @@ from constantes import *
 from utils import px_to_tile, is_valid_tile
 
 
+# Rect bouton mute audio (coin haut droit)
 MUTE_BTN_RECT = pygame.Rect(SCREEN_W - 54, 8, 36, 34)
+
+# En-tête HUD : score/vies/argent/vague/pollution/hint + bouton mute
 def draw_header(screen, font_big, font_small, score=0, lives=20,money=0, wave_num=1,wave_state="playing",wave_countdown=0,pollution=0.0, muted=False):
     pygame.draw.rect(screen, HEADER_COLOR, (0, 0, SCREEN_W, 50))
     font15 = pygame.font.SysFont("segoeui",15,bold=True)
@@ -78,9 +81,7 @@ def draw_header(screen, font_big, font_small, score=0, lives=20,money=0, wave_nu
     pol_label = font12.render(f"Pollution {int(pollution*100)}%", True, (180, 230, 180))
     screen.blit(pol_label, (pol_x, pol_y + pol_h + 2))
 
-
-
-
+# Message feedback temporaire (placement, argent etc.)
 def draw_feedback_message(screen, font, message, message_timer):
     if message_timer <= 0:
         return
@@ -91,7 +92,7 @@ def draw_feedback_message(screen, font, message, message_timer):
     screen.blit(bg,       (18, SCREEN_H - 48))
     screen.blit(msg_surf, (29, SCREEN_H - 42))
 
-
+# Overlay game over avec score/vague/pollution + message éco + hint ESC
 def draw_game_over(screen, font_big, score, wave_num, pollution):
     ov = pygame.Surface((SCREEN_W, SCREEN_H), pygame.SRCALPHA)
     ov.fill((0, 0, 0, 160))
@@ -117,7 +118,7 @@ def draw_game_over(screen, font_big, score, wave_num, pollution):
     hint = font16.render("Appuyez sur ESC pour revenir au menu", True, (180, 180, 180))
     screen.blit(hint, hint.get_rect(center=(cx, cy + 130)))
 
-
+# Bannière flash début vague
 def draw_wave_banner(screen, font_big, wave_num):
     """Bannière flash au début de chaque vague."""
     font30 = pygame.font.SysFont("segoeui", 30, bold=True)
@@ -127,7 +128,7 @@ def draw_wave_banner(screen, font_big, wave_num):
     txt = font30.render(f"VAGUE {wave_num}  —  EN ROUTE !", True, (140, 255, 160))
     screen.blit(txt, txt.get_rect(center=(SCREEN_W//2, SCREEN_H//2)))
 
-
+# Frame complète : header + map + palette + proj/ennemis + UI + over
 def draw_frame(screen, font, font_small, font_big,
                game_map, palette,
                dragging_item,
@@ -143,7 +144,6 @@ def draw_frame(screen, font, font_small, font_big,
                wave_banner_timer=0,
                muted=False):
     screen.fill(BG_COLOR)
-
 
     draw_header(screen, font_big, font_small, score, lives, money,
                 wave_num, wave_state, wave_countdown, pollution,muted)
@@ -182,3 +182,4 @@ def draw_frame(screen, font, font_small, font_big,
         draw_game_over(screen, font_big, score, wave_num, pollution)
 
     pygame.display.flip()
+

@@ -10,7 +10,11 @@ from enemy import Enemy
 from renderer import draw_frame, MUTE_BTN_RECT
 
 
+# Classe principale du jeu : gère la logique complète (vagues, tours, ennemis, UI, événements)
 class Game:
+    # Initialisation de la classe Game avec écran et horloge Pygame
+    # Setup polices, carte, palette, panneau upgrades, listes ennemis/projectiles,
+    # variables économie/vies/score, état des vagues
     def __init__(self, screen: pygame.Surface, clock: pygame.time.Clock):
         self.screen = screen
         self.clock  = clock
@@ -56,6 +60,7 @@ class Game:
 
     # ─── Vagues ──────────────────────────────────────────────────────────────
 
+    # Démarre la vague suivante en générant les ennemis et passant en mode spawning
     def _start_next_wave(self):
         self.wave_num  += 1
         self.wave_queue = generate_wave(self.wave_num)
@@ -65,11 +70,13 @@ class Game:
         self.message = f"🌊 Vague {self.wave_num} — {len(self.wave_queue)} ennemis !"
         self.message_timer = 3000
 
+    # Vérifie si tous les ennemis de la vague sont morts/queue vide
     def _all_dead(self):
         return len(self.enemies) == 0 and len(self.wave_queue) == 0
 
     # ─── Mise à jour ─────────────────────────────────────────────────────────
 
+    # Met à jour l'état du jeu : hover tiles, drag, messages, vagues, ennemis, tours, projectiles
     def _update(self, dt, mx, my):
         col, row = px_to_tile(mx, my)
         self.game_map.hovered_tile = (col, row) if is_valid_tile(col, row) else None
@@ -146,6 +153,7 @@ class Game:
 
     # ─── Événements ──────────────────────────────────────────────────────────
 
+    # Gère clic gauche : mute, drag tower depuis palette
     def _on_left_press(self, mx, my):
         if MUTE_BTN_RECT.collidepoint(mx, my):
             self.muted = not self.muted
@@ -163,6 +171,7 @@ class Game:
             self.dragging_item   = DraggableItem(tower_type, mx, my)
             self.dragging_item.start_drag(mx, my)
 
+    # Relâchement gauche : place tour si valide, sinon message erreur
     def _on_left_release(self, mx, my):
         if not self.dragging_item:
             return
@@ -181,6 +190,7 @@ class Game:
         self.dragging_item   = None
         self.drag_tower_type = None
 
+    # Clic droit : upgrade tour ou suppression
     def _on_right_press(self, mx, my):
         # Sur une tour placée : UPGRADE si possible, sinon supprimer
         tower = self.game_map.get_tower_at_px(mx, my)
@@ -209,6 +219,7 @@ class Game:
                 self.message = f"Tour supprimée"
                 self.message_timer = 1500
 
+    # Traite tous les événements Pygame (quit, ESC, clics)
     def _handle_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -228,6 +239,7 @@ class Game:
 
     # ── Boucle ───────────────────────────────────────────────────────────────
 
+    # Boucle principale du jeu : events, update, render jusqu'à changement d'état
     def run(self) -> str:
         music.play('jeu')
         while True:
@@ -262,3 +274,4 @@ class Game:
                 wave_banner_timer=self.wave_banner_timer,
                 muted=self.muted,
             )
+
