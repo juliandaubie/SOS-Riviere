@@ -3,6 +3,7 @@ import os
 import random
 from constantes import *
 from utils import draw_tower_icon
+import music
 
 
 # ─── Palette latérale ────────────────────────────────────────────────────────
@@ -29,7 +30,7 @@ class Palette:
         pygame.draw.rect(surface, PANEL_BG, panel_rect, border_radius=12)
         pygame.draw.rect(surface, (50, 130, 60), panel_rect, 2, border_radius=12)
 
-        title = font.render("🌱 TOURS", True, (160, 240, 130))
+        title = font.render("TOURS", True, (160, 240, 130))
         surface.blit(title, (self.PANEL_X + 35, MAP_Y - 4))
 
         for tower, rect in zip(TOWER_TYPES, self.items_rects):
@@ -52,10 +53,10 @@ class Palette:
             surface.blit(name_surf, (rect.x + 58, rect.y + 4))
 
             cost_c = (255, 220, 60) if can_afford else (100, 100, 100)
-            cost_surf = font_small.render(f"💰 {tower['cost']}$", True, cost_c)
+            cost_surf = font_small.render(f"{tower['cost']}$", True, cost_c)
             surface.blit(cost_surf, (rect.x + 58, rect.y + 22))
 
-            range_surf = font_small.render(f"🎯 {tower['range_tiles']} tiles", True, (160, 220, 255))
+            range_surf = font_small.render(f"{tower['range_tiles']} tiles", True, (160, 220, 255))
             surface.blit(range_surf, (rect.x + 58, rect.y + 37))
 
             desc_surf = font_small.render(tower["desc"], True, (170, 215, 150))
@@ -86,7 +87,7 @@ class UpgradePanel:
         surface.blit(bg, (px, py))
 
         y = py + 8
-        name = font.render(f"🏗 {tower.tower_type['name']}", True, (220, 255, 180))
+        name = font.render(f"{tower.tower_type['name']}", True, (220, 255, 180))
         surface.blit(name, (px + 10, y))
         y += 20
 
@@ -106,7 +107,7 @@ class UpgradePanel:
         y += 6
 
         if tower.can_upgrade():
-            stars = "★" * (tower.upgrade_level + 1)
+            stars = "" * (tower.upgrade_level + 1)
             lvl = font_small.render(f"Upgrade {stars}", True, (255, 220, 80))
             surface.blit(lvl, (px + 10, y))
             y += 14
@@ -118,10 +119,10 @@ class UpgradePanel:
             cost = tower.upgrade_cost()
             can = money >= cost
             cost_c = (80, 220, 80) if can else (220, 80, 80)
-            cost_t = font_small.render(f"💰 {cost}$  [clic droit]", True, cost_c)
+            cost_t = font_small.render(f"{cost}$  [clic droit]", True, cost_c)
             surface.blit(cost_t, (px + 10, y))
         else:
-            max_t = font.render("⭐ NIVEAU MAX", True, (255, 200, 50))
+            max_t = font.render("NIVEAU MAX", True, (255, 200, 50))
             surface.blit(max_t, (px + 10, y))
 
         # Message éco
@@ -179,9 +180,9 @@ class MenuScreen:
 
         btn_w, btn_h = 280, 60
         cx = self.w // 2
-        self.btn_start = Button("▶  JOUER", cx - btn_w//2, MENU_BTN_Y,
+        self.btn_start = Button("JOUER", cx - btn_w//2, MENU_BTN_Y,
                                 btn_w, btn_h, font=self.font_btn)
-        self.btn_quit  = Button("✕  QUITTER", cx - btn_w//2, MENU_BTN_Y + 80,
+        self.btn_quit  = Button("QUITTER", cx - btn_w//2, MENU_BTN_Y + 80,
                                 btn_w, btn_h,
                                 color=(100, 40, 40), hover_color=(170, 60, 60),
                                 text_color=(255, 200, 200), font=self.font_btn)
@@ -231,6 +232,7 @@ class MenuScreen:
             self.screen.blit(s, (int(p["x"]), int(p["y"])))
 
     def run(self) -> str:
+        music.play("menu")
         while True:
             dt = self.clock.tick(FPS) / 1000.0
             self.slogan_timer += dt
@@ -257,8 +259,8 @@ class MenuScreen:
             self._draw_particles()
 
             # Titre
-            title = self.font_title.render("🌿 EARTHTECH", True, (140, 240, 120))
-            shadow = self.font_title.render("🌿 EARTHTECH", True, (0, 0, 0))
+            title = self.font_title.render("EARTHTECH", True, (140, 240, 120))
+            shadow = self.font_title.render("EARTHTECH", True, (0, 0, 0))
             cx = self.w // 2
             ty = self.h // 2 - 160
             self.screen.blit(shadow, shadow.get_rect(center=(cx + 3, ty + 3)))

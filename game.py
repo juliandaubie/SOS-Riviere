@@ -1,4 +1,5 @@
 import pygame
+
 import music
 from constantes import *
 from utils import px_to_tile, is_valid_tile
@@ -6,7 +7,7 @@ from map import Map
 from menu import Palette, UpgradePanel
 from tour import DraggableItem
 from enemy import Enemy
-from renderer import draw_frame
+from renderer import draw_frame, MUTE_BTN_RECT
 
 
 class Game:
@@ -32,6 +33,11 @@ class Game:
         self.message       = ""
         self.message_timer = 0.0
 
+        self.score       = 0
+        self.lives       = 20
+        self.spawn_timer = WAVE_SPAWN_INTERVAL
+        self.game_over   = False
+        self.muted       = False
         # ── Économie ─────────────────────────────────────────────────────────
         self.money = STARTING_MONEY
         self.score = 0
@@ -141,12 +147,16 @@ class Game:
     # ─── Événements ──────────────────────────────────────────────────────────
 
     def _on_left_press(self, mx, my):
+        if MUTE_BTN_RECT.collidepoint(mx, my):
+            self.muted = not self.muted
+            pygame.mixer.music.set_volume(0.0 if self.muted else MUSIC_VOLUME)
+            return
         if self.dragging_item is not None:
             return
         tower_type, _, _ = self.palette.get_tower_at(mx, my)
         if tower_type:
             if self.money < tower_type["cost"]:
-                self.message = f"❌ Pas assez d'argent ! (manque {tower_type['cost'] - self.money}$)"
+                self.message = f"Pas assez d'argent ! (manque {tower_type['cost'] - self.money}$)"
                 self.message_timer = 2000
                 return
             self.drag_tower_type = tower_type
@@ -161,11 +171,11 @@ class Game:
             if self.game_map.place_tower(self.drag_tower_type, drop_col, drop_row):
                 self.money -= self.drag_tower_type["cost"]
                 eco = self.drag_tower_type.get("eco_msg", "")
-                self.message = f"✅ {self.drag_tower_type['name']} placé !  {eco}"
+                self.message = f" {self.drag_tower_type['name']} placé !  {eco}"
             else:
-                self.message = "❌ Impossible de placer ici !"
+                self.message = "Impossible de placer ici !"
         else:
-            self.message = "❌ Hors de la carte"
+            self.message = "Hors de la carte"
         self.message_timer = 2500
         self.dragging_item.stop_drag()
         self.dragging_item   = None
@@ -181,13 +191,13 @@ class Game:
                     self.money -= cost
                     tower.do_upgrade()
                     stars = "★" * tower.upgrade_level
-                    self.message = f"⬆️ {tower.tower_type['name']} amélioré ! {stars}"
+                    self.message = f"⬆{tower.tower_type['name']} amélioré ! {stars}"
                     self.message_timer = 2000
                 else:
-                    self.message = f"❌ Manque {cost - self.money}$ pour l'upgrade"
+                    self.message = f"Manque {cost - self.money}$ pour l'upgrade"
                     self.message_timer = 2000
             else:
-                self.message = f"⭐ {tower.tower_type['name']} est déjà au niveau MAX"
+                self.message = f"{tower.tower_type['name']} est déjà au niveau MAX"
                 self.message_timer = 2000
         else:
             # Rien sous le curseur : supprimer si on clique sur une tour
@@ -196,7 +206,7 @@ class Game:
             self.game_map.towers = [t for t in self.game_map.towers
                                      if not (t.col == col and t.row == row)]
             if len(self.game_map.towers) < before:
-                self.message = f"🗑️ Tour supprimée"
+                self.message = f"Tour supprimée"
                 self.message_timer = 1500
 
     def _handle_events(self):
@@ -216,7 +226,7 @@ class Game:
                 self._on_left_release(*event.pos)
         return None
 
-    # ─── Boucle principale ───────────────────────────────────────────────────
+    # ── Boucle ───────────────────────────────────────────────────────────────
 
     def run(self) -> str:
         music.play('jeu')
@@ -250,4 +260,5 @@ class Game:
                 upgrade_panel=self.upgrade_panel,
                 game_over=self.game_over,
                 wave_banner_timer=self.wave_banner_timer,
+                muted=self.muted,
             )

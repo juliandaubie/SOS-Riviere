@@ -124,7 +124,7 @@ class PlacedTower:
 
         # Badge niveau upgrade
         if self.upgrade_level > 0:
-            stars = "★" * self.upgrade_level
+            stars = "*" * self.upgrade_level
             font = pygame.font.SysFont("segoeui", 10, bold=True)
             s = font.render(stars, True, (255, 220, 50))
             surface.blit(s, (x - s.get_width()//2, y + TILE_SIZE//2 - 14))

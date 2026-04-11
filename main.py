@@ -7,7 +7,7 @@ from menu import MenuScreen
 def main():
     pygame.init()
     screen = pygame.display.set_mode((SCREEN_W, SCREEN_H))
-    pygame.display.set_caption("🌿 Eco Tower Defense")
+    pygame.display.set_caption("Eco Tower Defense")
     clock = pygame.time.Clock()
 
     state = STATE_MENU

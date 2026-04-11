@@ -125,7 +125,7 @@ class Enemy:
         bx = ix - bar_w // 2
         by = iy - r - 12
         pygame.draw.rect(surface, (40, 8, 8), (bx - 1, by - 1, bar_w + 2, bar_h + 2))
-        hp_ratio = max(0, self.hp / self.max_hp)
+        hp_ratio = max(0, self.hp // self.max_hp)
         bar_color = (
             int(220 * (1 - hp_ratio)),
             int(200 * hp_ratio),

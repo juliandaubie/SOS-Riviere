@@ -2,12 +2,6 @@ import pygame
 import math
 from constantes import *
 
-# ─── Types de trajectoire ────────────────────────────────────────────────────
-TRAJ_LINEAR    = "linear"     # Éolienne  — droit, rapide
-TRAJ_PARABOLIC = "parabolic"  # Arbre, Compost — arc flèche
-TRAJ_LOBBED    = "lobbed"     # Solaire   — bombe arc haut + AoE
-TRAJ_WAVE      = "wave"       # Barrage   — onde sinusoïdale amortie
-
 
 def predict_position(enemy, proj_speed, src_x, src_y):
     """
@@ -20,7 +14,7 @@ def predict_position(enemy, proj_speed, src_x, src_y):
     speed  = max(enemy.speed, 1.0)
 
     for _ in range(8):
-        d     = math.hypot(ex - src_x, ey - src_y)
+        d = math.hypot(ex - src_x, ey - src_y)
         t_fly = d / proj_speed
 
         remaining = t_fly
@@ -58,10 +52,9 @@ class Projectile:
         TRAJ_WAVE:      260,
     }
 
-    def __init__(self, src_x, src_y, target, damage, slow_factor,
-                 aoe_radius, color, traj=TRAJ_LINEAR):
-        self.src_x = float(src_x)
-        self.src_y = float(src_y)
+    def __init__(self, src_x, src_y, target, damage, slow_factor, aoe_radius, color, traj=TRAJ_LINEAR):
+        self.src_x       = float(src_x)
+        self.src_y       = float(src_y)
         self.color       = color
         self.damage      = damage
         self.slow_factor = slow_factor
@@ -72,9 +65,7 @@ class Projectile:
         self.speed       = self.SPEEDS[traj]
 
         # ── Destination prédite (point fixe) ─────────────────────────────────
-        self.dst_x, self.dst_y = predict_position(
-            target, self.speed, src_x, src_y
-        )
+        self.dst_x, self.dst_y = predict_position(target, self.speed, src_x, src_y)
 
         self.x = float(src_x)
         self.y = float(src_y)

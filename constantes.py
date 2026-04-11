@@ -53,7 +53,7 @@ def generate_wave(wave_num):
         enemies.append({"hp": hp * 5, "speed_mult": speed * 0.7, "reward": reward * 5, "is_boss": True})
     return enemies
 
-WAVE_SPAWN_INTERVAL = 1.2   # secondes entre chaque ennemi dans une vague
+WAVE_SPAWN_INTERVAL = 2   # secondes entre chaque ennemi dans une vague
 WAVE_BREAK_DURATION = 8.0   # secondes entre les vagues
 
 # ─── ARGENT ──────────────────────────────────────────────────────────────────
@@ -63,7 +63,7 @@ STARTING_MONEY = 200
 # upgrades: liste de dict {cost, damage_bonus, range_bonus, fire_rate_bonus, desc}
 TOWER_TYPES = [
     {
-        "name": "Arbre",    "emoji": "🌳",
+        "name": "Arbre",    "emoji": "",
         "color": (34, 120, 34),  "cost": 50,
         "desc": "Ralentit les ennemis",
         "eco_msg": "Les arbres absorbent le CO₂ !",
@@ -78,7 +78,7 @@ TOWER_TYPES = [
         ]
     },
     {
-        "name": "Solaire",  "emoji": "☀️",
+        "name": "Solaire",  "emoji": "☀",
         "color": (220, 180, 0),  "cost": 100,
         "desc": "Dégâts zone",
         "eco_msg": "L'énergie solaire, propre et infinie !",
@@ -93,7 +93,7 @@ TOWER_TYPES = [
         ]
     },
     {
-        "name": "Éolienne", "emoji": "💨",
+        "name": "Éolienne", "emoji": "",
         "color": (80, 160, 220), "cost": 80,
         "desc": "Tir rapide",
         "eco_msg": "Le vent, une énergie inépuisable !",
@@ -108,10 +108,10 @@ TOWER_TYPES = [
         ]
     },
     {
-        "name": "Compost",  "emoji": "🌿",
+        "name": "Compost",  "emoji": "",
         "color": (100, 160, 50), "cost": 60,
         "desc": "Affaiblit ennemis",
-        "eco_msg": "Le compost enrichit les sols naturellement.",
+        "eco_msg": "Le compost enrichit les sols.",
         "range_tiles": 2.0, "damage": 10, "fire_rate": 0.8,
         "slow": 0.65,       "aoe": 0,
         "proj_color": (180, 255, 100),
@@ -123,10 +123,10 @@ TOWER_TYPES = [
         ]
     },
     {
-        "name": "Barrage",  "emoji": "💧",
+        "name": "Barrage",  "emoji": "",
         "color": (40, 100, 200), "cost": 120,
         "desc": "Haute portée",
-        "eco_msg": "L'hydroélectricité, une énergie renouvelable !",
+        "eco_msg": "L'eau dans 20~30 ans il n'y en aura plus.",
         "range_tiles": 4.5, "damage": 15, "fire_rate": 0.9,
         "slow": 0.75,       "aoe": 0,
         "proj_color": (100, 180, 255),
@@ -152,3 +152,8 @@ MUSIC_VOLUME      = 0.3
 MAP_BG_IMAGE_PATH = os.path.join("assets", "map_bg.png")
 ENEMY_IMAGE_PATH  = os.path.join("assets", "dechet.png")
 MENU_BTN_Y        = SCREEN_H // 2 + 160
+
+TRAJ_LINEAR = "linear"
+TRAJ_PARABOLIC = "parabolic"
+TRAJ_LOBBED = "lobbed"
+TRAJ_WAVE = "wave"

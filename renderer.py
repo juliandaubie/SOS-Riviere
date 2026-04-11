@@ -3,37 +3,30 @@ from constantes import *
 from utils import px_to_tile, is_valid_tile
 
 
-def draw_header(screen, font_big, font_small, score=0, lives=20,
-                money=0, wave_num=1, wave_state="playing",
-                wave_countdown=0, pollution=0.0):
-
-    pygame.draw.rect(screen, HEADER_COLOR, (0, 0, SCREEN_W, MAP_Y - 2))
-
-    # Titre
-    title = font_big.render("🌿 EARTHTECH", True, (140, 240, 120))
-    screen.blit(title, (16, 10))
-
-    font15 = pygame.font.SysFont("segoeui", 15, bold=True)
-    font12 = pygame.font.SysFont("segoeui", 12)
+MUTE_BTN_RECT = pygame.Rect(SCREEN_W - 54, 8, 36, 34)
+def draw_header(screen, font_big, font_small, score=0, lives=20,money=0, wave_num=1,wave_state="playing",wave_countdown=0,pollution=0.0, muted=False):
+    pygame.draw.rect(screen, HEADER_COLOR, (0, 0, SCREEN_W, 50))
+    font15 = pygame.font.SysFont("segoeui",15,bold=True)
+    font12 = pygame.font.SysFont("segoeui",15)
 
     # Score & Vies
-    score_surf = font15.render(f"⭐ {score}", True, (240, 220, 80))
+    score_surf = font15.render(f"score : {score}", True, (240, 220, 80))
     screen.blit(score_surf, (300, 8))
 
     lives_c = (80, 220, 80) if lives > 10 else (220, 140, 40) if lives > 5 else (220, 60, 60)
-    lives_surf = font15.render(f"❤️ {lives}", True, lives_c)
+    lives_surf = font15.render(f"vies : {lives}", True, lives_c)
     screen.blit(lives_surf, (300, 26))
 
     # Argent
-    money_surf = font15.render(f"💰 {money}$", True, (255, 210, 50))
+    money_surf = font15.render(f"{money}$", True, (255, 210, 50))
     screen.blit(money_surf, (420, 8))
 
     # Vague
     if wave_state == "break":
-        wave_txt = f"⏳ Prochaine vague dans {wave_countdown:.0f}s"
+        wave_txt = f"Prochaine vague dans {wave_countdown:.0f}s"
         wc = (200, 240, 140)
     else:
-        wave_txt = f"🌊 Vague {wave_num}"
+        wave_txt = f"Vague {wave_num}"
         wc = (100, 200, 255)
     wave_surf = font15.render(wave_txt, True, wc)
     screen.blit(wave_surf, (420, 26))
@@ -43,6 +36,35 @@ def draw_header(screen, font_big, font_small, score=0, lives=20,
     pol_w = 200
     pol_h = 14
     pol_y = 12
+    hint = font_small.render(
+        "Survole une tour = range  •  Clic droit = supprimer  •  ESC = menu",
+        True, (100, 160, 90)
+    )
+    screen.blit(hint, (SCREEN_W - hint.get_width() - 15 - 50, 17))
+
+    # ── Bouton muet ──────────────────────────────────────────────────────────
+    hovered = MUTE_BTN_RECT.collidepoint(pygame.mouse.get_pos())
+    btn_col = (80, 50, 50) if muted else ((60, 110, 65) if not hovered else (80, 150, 85))
+    pygame.draw.rect(screen, btn_col, MUTE_BTN_RECT, border_radius=8)
+    border_col = (200, 80, 80) if muted else (100, 200, 110)
+    pygame.draw.rect(screen, border_col, MUTE_BTN_RECT, 2, border_radius=8)
+    cx, cy = MUTE_BTN_RECT.center
+    # Corps du haut-parleur
+    pygame.draw.polygon(screen, (255, 255, 255), [
+        (cx - 9, cy - 4), (cx - 4, cy - 4),
+        (cx + 2, cy - 9), (cx + 2, cy + 9),
+        (cx - 4, cy + 4), (cx - 9, cy + 4),
+    ])
+    if not muted:
+        # Ondes sonores
+        pygame.draw.arc(screen, (255, 255, 255),
+                        (cx + 3, cy - 6, 8, 12), -0.6, 0.6, 2)
+        pygame.draw.arc(screen, (255, 255, 255),
+                        (cx + 6, cy - 10, 12, 20), -0.6, 0.6, 2)
+    else:
+        pygame.draw.line(screen, (255, 60, 60), (cx - 8, cy - 8), (cx + 8, cy + 8), 3)
+        pygame.draw.line(screen, (255, 60, 60), (cx + 8, cy - 8), (cx - 8, cy + 8), 3)
+
 
     pygame.draw.rect(screen, (30, 50, 35), (pol_x, pol_y, pol_w, pol_h), border_radius=6)
     fill_w = int(pol_w * pollution)
@@ -53,13 +75,10 @@ def draw_header(screen, font_big, font_small, score=0, lives=20,
         pygame.draw.rect(screen, (r, g, b), (pol_x, pol_y, fill_w, pol_h), border_radius=6)
     pygame.draw.rect(screen, (80, 160, 80), (pol_x, pol_y, pol_w, pol_h), 1, border_radius=6)
 
-    pol_label = font12.render(f"🌊 Pollution {int(pollution*100)}%", True, (180, 230, 180))
+    pol_label = font12.render(f"Pollution {int(pollution*100)}%", True, (180, 230, 180))
     screen.blit(pol_label, (pol_x, pol_y + pol_h + 2))
 
-    # Hint
-    hint = font12.render("Survole tour = infos  •  Clic droit sur tour = upgrade  •  ESC = menu",
-                         True, (80, 140, 80))
-    screen.blit(hint, (SCREEN_W - hint.get_width() - 12, MAP_Y - 18))
+
 
 
 def draw_feedback_message(screen, font, message, message_timer):
@@ -84,7 +103,7 @@ def draw_game_over(screen, font_big, score, wave_num, pollution):
 
     cx, cy = SCREEN_W // 2, SCREEN_H // 2 - 80
 
-    go = font36.render("💀  RIVIÈRE POLLUÉE — GAME OVER", True, (255, 80, 60))
+    go = font36.render("RIVIÈRE POLLUÉE — GAME OVER", True, (255, 80, 60))
     screen.blit(go, go.get_rect(center=(cx, cy)))
 
     s1 = font22.render(f"Score final : {score}  |  Vague atteinte : {wave_num}", True, (220, 240, 180))
@@ -105,7 +124,7 @@ def draw_wave_banner(screen, font_big, wave_num):
     bg = pygame.Surface((400, 50), pygame.SRCALPHA)
     pygame.draw.rect(bg, (10, 80, 20, 200), (0, 0, 400, 50), border_radius=10)
     screen.blit(bg, (SCREEN_W//2 - 200, SCREEN_H//2 - 25))
-    txt = font30.render(f"🌊  VAGUE {wave_num}  —  EN ROUTE !", True, (140, 255, 160))
+    txt = font30.render(f"VAGUE {wave_num}  —  EN ROUTE !", True, (140, 255, 160))
     screen.blit(txt, txt.get_rect(center=(SCREEN_W//2, SCREEN_H//2)))
 
 
@@ -121,12 +140,13 @@ def draw_frame(screen, font, font_small, font_big,
                hovered_tower=None,
                upgrade_panel=None,
                game_over=False,
-               wave_banner_timer=0):
-
+               wave_banner_timer=0,
+               muted=False):
     screen.fill(BG_COLOR)
 
+
     draw_header(screen, font_big, font_small, score, lives, money,
-                wave_num, wave_state, wave_countdown, pollution)
+                wave_num, wave_state, wave_countdown, pollution,muted)
 
     game_map.draw(screen, font_small, hovered_tower=hovered_tower,
                   dragging_item=dragging_item)
@@ -137,6 +157,7 @@ def draw_frame(screen, font, font_small, font_big,
         for p in projectiles:
             p.draw(screen)
 
+    # Ennemis
     if enemies:
         for e in enemies:
             e.draw(screen)
