@@ -1,26 +1,29 @@
+import os
+
 # ─── CONFIG ───────────────────────────────────────────────────────────────────
-SCREEN_W, SCREEN_H = 1100, 700
+SCREEN_W, SCREEN_H = 1200, 750
 TILE_SIZE = 60
 COLS = 14
 ROWS = 10
 MAP_X = 20
-MAP_Y = 60
+MAP_Y = 70
 FPS = 60
 
-# ─── COULEURS ÉCOLOGIE ────────────────────────────────────────────────────────
-BG_COLOR         = (15, 30, 20)
-GRASS_COLOR      = (45, 100, 50)
-GRASS_DARK       = (35, 80, 40)
-PATH_COLOR       = (180, 140, 80)
-PATH_DARK        = (160, 120, 60)
-GRID_COLOR       = (20, 60, 25)
-COORD_COLOR      = (120, 200, 100)
-HEADER_COLOR     = (10, 25, 15)
-TEXT_COLOR       = (200, 240, 180)
-HIGHLIGHT        = (100, 220, 100, 80)
-SHADOW_COLOR     = (0, 0, 0, 120)
+# ─── COULEURS ─────────────────────────────────────────────────────────────────
+BG_COLOR          = (8, 18, 12)
+GRASS_COLOR       = (45, 100, 50)
+GRASS_DARK        = (35, 80, 40)
+PATH_COLOR        = (160, 130, 70)
+PATH_DARK         = (140, 110, 55)
+GRID_COLOR        = (20, 60, 25)
+COORD_COLOR       = (120, 200, 100)
+HEADER_COLOR      = (6, 18, 10)
+TEXT_COLOR        = (200, 240, 180)
+HIGHLIGHT         = (100, 220, 100, 80)
+SHADOW_COLOR      = (0, 0, 0, 120)
 TOWER_ZONE_COLOR  = (60, 130, 60)
 TOWER_ZONE_BORDER = (80, 180, 80)
+PANEL_BG          = (10, 28, 15)
 
 # ─── CHEMIN DU MONSTRE ───────────────────────────────────────────────────────
 ENEMY_PATH = [
@@ -33,79 +36,119 @@ ENEMY_PATH = [
     (11, 3), (11, 4), (11, 5), (11, 6), (11, 7),
     (12, 7), (13, 7),
 ]
-
 PATH_SET = set(ENEMY_PATH)
 
-# ─── TOURS DISPONIBLES ───────────────────────────────────────────────────────
-# range_tiles : rayon d'attaque en tiles
-# damage      : dégâts par tir
-# fire_rate   : tirs par seconde
-# slow        : facteur de ralentissement (1.0 = aucun, 0.5 = vitesse /2)
-# aoe         : rayon de zone en pixels (0 = pas d'AoE)
-# proj_color  : couleur du projectile
+# ─── SYSTEM DE VAGUES ────────────────────────────────────────────────────────
+# Chaque vague : liste de (hp, speed_mult, reward)
+def generate_wave(wave_num):
+    enemies = []
+    count = 5 + wave_num * 2
+    hp = int(80 * (1.3 ** (wave_num - 1)))
+    speed = 1.0 + wave_num * 0.05
+    reward = 10 + wave_num * 2
+    for _ in range(count):
+        enemies.append({"hp": hp, "speed_mult": speed, "reward": reward})
+    # Boss tous les 5 vagues
+    if wave_num % 5 == 0:
+        enemies.append({"hp": hp * 5, "speed_mult": speed * 0.7, "reward": reward * 5, "is_boss": True})
+    return enemies
+
+WAVE_SPAWN_INTERVAL = 1.2   # secondes entre chaque ennemi dans une vague
+WAVE_BREAK_DURATION = 8.0   # secondes entre les vagues
+
+# ─── ARGENT ──────────────────────────────────────────────────────────────────
+STARTING_MONEY = 200
+
+# ─── TOURS ───────────────────────────────────────────────────────────────────
+# upgrades: liste de dict {cost, damage_bonus, range_bonus, fire_rate_bonus, desc}
 TOWER_TYPES = [
     {
         "name": "Arbre",    "emoji": "🌳",
         "color": (34, 120, 34),  "cost": 50,
         "desc": "Ralentit les ennemis",
-        "range_tiles": 2.5, "damage": 5,  "fire_rate": 1.0,
-        "slow": 0.5,        "aoe": 0,
+        "eco_msg": "Les arbres absorbent le CO₂ !",
+        "range_tiles": 2.5, "damage": 8,  "fire_rate": 1.0,
+        "slow": 0.45,       "aoe": 0,
         "proj_color": (100, 220, 80),
-        "image": r"assets\arbre.png",
+        "image": os.path.join("assets", "arbre.png"),
+        "upgrades": [
+            {"cost": 40,  "damage_bonus": 4,  "range_bonus": 0.3, "fire_rate_bonus": 0.0, "slow_bonus": -0.05, "desc": "Racines renforcées"},
+            {"cost": 80,  "damage_bonus": 8,  "range_bonus": 0.5, "fire_rate_bonus": 0.2, "slow_bonus": -0.05, "desc": "Forêt dense"},
+            {"cost": 150, "damage_bonus": 15, "range_bonus": 0.7, "fire_rate_bonus": 0.3, "slow_bonus": -0.10, "desc": "Arbre millénaire"},
+        ]
     },
     {
         "name": "Solaire",  "emoji": "☀️",
         "color": (220, 180, 0),  "cost": 100,
         "desc": "Dégâts zone",
+        "eco_msg": "L'énergie solaire, propre et infinie !",
         "range_tiles": 3.0, "damage": 20, "fire_rate": 0.6,
         "slow": 1.0,        "aoe": 55,
         "proj_color": (255, 220, 50),
-        "image": r"assets\solaire.png",
+        "image": os.path.join("assets", "solaire.png"),
+        "upgrades": [
+            {"cost": 60,  "damage_bonus": 10, "range_bonus": 0.3, "fire_rate_bonus": 0.1, "slow_bonus": 0.0, "desc": "Panneaux améliorés"},
+            {"cost": 120, "damage_bonus": 20, "range_bonus": 0.5, "fire_rate_bonus": 0.2, "slow_bonus": 0.0, "desc": "Ferme solaire"},
+            {"cost": 200, "damage_bonus": 40, "range_bonus": 0.8, "fire_rate_bonus": 0.3, "slow_bonus": 0.0, "desc": "Supernova éclair"},
+        ]
     },
     {
         "name": "Éolienne", "emoji": "💨",
         "color": (80, 160, 220), "cost": 80,
         "desc": "Tir rapide",
+        "eco_msg": "Le vent, une énergie inépuisable !",
         "range_tiles": 2.0, "damage": 8,  "fire_rate": 2.5,
         "slow": 1.0,        "aoe": 0,
         "proj_color": (180, 230, 255),
-        "image": r"assets\eolienne.png",
+        "image": os.path.join("assets", "eolienne.png"),
+        "upgrades": [
+            {"cost": 50,  "damage_bonus": 4,  "range_bonus": 0.2, "fire_rate_bonus": 0.5, "slow_bonus": 0.0, "desc": "Rotors optimisés"},
+            {"cost": 100, "damage_bonus": 8,  "range_bonus": 0.4, "fire_rate_bonus": 1.0, "slow_bonus": 0.0, "desc": "Turbine ultra"},
+            {"cost": 180, "damage_bonus": 16, "range_bonus": 0.6, "fire_rate_bonus": 2.0, "slow_bonus": 0.0, "desc": "Tempête déchaînée"},
+        ]
     },
     {
         "name": "Compost",  "emoji": "🌿",
         "color": (100, 160, 50), "cost": 60,
         "desc": "Affaiblit ennemis",
+        "eco_msg": "Le compost enrichit les sols naturellement.",
         "range_tiles": 2.0, "damage": 10, "fire_rate": 0.8,
-        "slow": 0.7,        "aoe": 0,
+        "slow": 0.65,       "aoe": 0,
         "proj_color": (180, 255, 100),
-        "image": r"assets\compost.png",
+        "image": os.path.join("assets", "compost.png"),
+        "upgrades": [
+            {"cost": 40,  "damage_bonus": 5,  "range_bonus": 0.3, "fire_rate_bonus": 0.2, "slow_bonus": -0.05, "desc": "Bio-accélérateur"},
+            {"cost": 80,  "damage_bonus": 10, "range_bonus": 0.5, "fire_rate_bonus": 0.3, "slow_bonus": -0.10, "desc": "Toxines naturelles"},
+            {"cost": 140, "damage_bonus": 20, "range_bonus": 0.7, "fire_rate_bonus": 0.5, "slow_bonus": -0.15, "desc": "Mycélium ravageur"},
+        ]
     },
     {
         "name": "Barrage",  "emoji": "💧",
         "color": (40, 100, 200), "cost": 120,
         "desc": "Haute portée",
+        "eco_msg": "L'hydroélectricité, une énergie renouvelable !",
         "range_tiles": 4.5, "damage": 15, "fire_rate": 0.9,
-        "slow": 0.8,        "aoe": 0,
+        "slow": 0.75,       "aoe": 0,
         "proj_color": (100, 180, 255),
-        "image": r"assets\barrage.png",
+        "image": os.path.join("assets", "barrage.png"),
+        "upgrades": [
+            {"cost": 70,  "damage_bonus": 8,  "range_bonus": 0.5, "fire_rate_bonus": 0.2, "slow_bonus": -0.05, "desc": "Turbines renforcées"},
+            {"cost": 140, "damage_bonus": 16, "range_bonus": 1.0, "fire_rate_bonus": 0.4, "slow_bonus": -0.10, "desc": "Grand barrage"},
+            {"cost": 240, "damage_bonus": 30, "range_bonus": 1.5, "fire_rate_bonus": 0.6, "slow_bonus": -0.15, "desc": "Déluge libéré"},
+        ]
     },
 ]
 
-
-# ── ÉTAT DU JEU ──────────────────────────────────────────────────────────────
+# ─── ÉTATS ───────────────────────────────────────────────────────────────────
 STATE_MENU    = "menu"
 STATE_PLAYING = "playing"
 STATE_QUIT    = "quit"
 
-
-# ─ IMAGE ─────────────────────────────────────────────────────────────────
-BG_IMAGE_PATH = "assets/sos_riviere.png"
-MUSIC_MENU_PATH = "assets/musique_menu.mp3"
-MUSIC_JEU_PATH  = "assets/musique_jeu.mp3"
-MUSIC_VOLUME = 0.3
-
-MENU_BTN_Y = SCREEN_H // 2 + 160
-
-MAP_BG_IMAGE_PATH = "assets/map_bg.png"
-
-ENEMY_IMAGE_PATH = r"assets\dechet.png"
+# ─── ASSETS ──────────────────────────────────────────────────────────────────
+BG_IMAGE_PATH     = os.path.join("assets", "sos_riviere.png")
+MUSIC_MENU_PATH   = os.path.join("assets", "musique_menu.mp3")
+MUSIC_JEU_PATH    = os.path.join("assets", "musique_jeu.mp3")
+MUSIC_VOLUME      = 0.3
+MAP_BG_IMAGE_PATH = os.path.join("assets", "map_bg.png")
+ENEMY_IMAGE_PATH  = os.path.join("assets", "dechet.png")
+MENU_BTN_Y        = SCREEN_H // 2 + 160

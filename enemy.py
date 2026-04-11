@@ -2,22 +2,24 @@ import pygame
 import math
 from constantes import *
 from utils import tile_to_px
-import os
+
 
 class Enemy:
-    BASE_SPEED = 80
-    _image = None
+    _image      = None
+    _image_boss = None
 
-    def __init__(self, hp=100, speed_mult=1.0):
+    def __init__(self, hp=100, speed_mult=1.0, reward=10, is_boss=False):
         self.path_index  = 0
         self.max_hp      = hp
         self.hp          = hp
-        self.base_speed  = self.BASE_SPEED * speed_mult
+        self.base_speed  = (60 if is_boss else 80) * speed_mult
         self.speed       = self.base_speed
         self.slow_timer  = 0.0
         self.slow_factor = 1.0
         self.alive       = True
         self.reached_end = False
+        self.reward      = reward
+        self.is_boss     = is_boss
 
         sx, sy = tile_to_px(*ENEMY_PATH[0])
         self.x = float(sx)
@@ -64,39 +66,75 @@ class Enemy:
         if not self.alive:
             return
         ix, iy = int(self.x), int(self.y)
-        r = 32
+        r = 40 if self.is_boss else 28
 
-        if Enemy._image is None:
-            import os
-            if os.path.exists(ENEMY_IMAGE_PATH):
-                Enemy._image = pygame.image.load(ENEMY_IMAGE_PATH).convert_alpha()
-            else:
-                Enemy._image = False
-
-        if Enemy._image:
-            size = r * 2
-            scaled = pygame.transform.scale(Enemy._image, (size, size))
-            surface.blit(scaled, (ix - r, iy - r))
+        # Charger image
+        if self.is_boss:
+            if Enemy._image_boss is None:
+                import os
+                if os.path.exists(ENEMY_IMAGE_PATH):
+                    img = pygame.image.load(ENEMY_IMAGE_PATH).convert_alpha()
+                    Enemy._image_boss = img
+                else:
+                    Enemy._image_boss = False
+            img = Enemy._image_boss
         else:
-            color = (180, 40, 40) if self.slow_factor == 1.0 else (80, 80, 220)
-            pygame.draw.circle(surface, color, (ix, iy), r)
-            pygame.draw.circle(surface, (220, 80, 80), (ix, iy), r, 2)
-            pygame.draw.circle(surface, (255, 255, 200), (ix - 5, iy - 4), 4)
-            pygame.draw.circle(surface, (255, 255, 200), (ix + 5, iy - 4), 4)
-            pygame.draw.circle(surface, (30, 10, 10), (ix - 5, iy - 4), 2)
-            pygame.draw.circle(surface, (30, 10, 10), (ix + 5, iy - 4), 2)
+            if Enemy._image is None:
+                import os
+                if os.path.exists(ENEMY_IMAGE_PATH):
+                    img = pygame.image.load(ENEMY_IMAGE_PATH).convert_alpha()
+                    Enemy._image = img
+                else:
+                    Enemy._image = False
+            img = Enemy._image
 
-        bar_w, bar_h = 34, 5
+        size = r * 2
+        if img:
+            # Teinte rouge si boss
+            scaled = pygame.transform.scale(img, (size, size))
+            if self.is_boss:
+                tinted = scaled.copy()
+                tinted.fill((255, 80, 80, 120), special_flags=pygame.BLEND_RGBA_MULT)
+                surface.blit(scaled, (ix - r, iy - r))
+                surface.blit(tinted, (ix - r, iy - r))
+            else:
+                if self.slow_timer > 0:
+                    # Overlay bleu si ralenti
+                    surface.blit(scaled, (ix - r, iy - r))
+                    overlay = pygame.Surface((size, size), pygame.SRCALPHA)
+                    overlay.fill((80, 130, 255, 90))
+                    surface.blit(overlay, (ix - r, iy - r))
+                else:
+                    surface.blit(scaled, (ix - r, iy - r))
+        else:
+            color = (200, 50, 50) if self.is_boss else (180, 40, 40)
+            if self.slow_timer > 0:
+                color = (80, 80, 220)
+            pygame.draw.circle(surface, color, (ix, iy), r)
+            pygame.draw.circle(surface, (255, 100, 100), (ix, iy), r, 2)
+
+        # Étiquette BOSS
+        if self.is_boss:
+            font = pygame.font.SysFont("segoeui", 11, bold=True)
+            b = font.render("☠ BOSS", True, (255, 80, 50))
+            surface.blit(b, (ix - b.get_width()//2, iy - r - 18))
+
+        # Barre de vie
+        bar_w = 50 if self.is_boss else 36
+        bar_h = 6  if self.is_boss else 5
         bx = ix - bar_w // 2
-        by = iy - r - 10
-        pygame.draw.rect(surface, (60, 10, 10), (bx, by, bar_w, bar_h))
+        by = iy - r - 12
+        pygame.draw.rect(surface, (40, 8, 8), (bx - 1, by - 1, bar_w + 2, bar_h + 2))
         hp_ratio = max(0, self.hp / self.max_hp)
-        pygame.draw.rect(surface,
-                         (int(220*(1-hp_ratio)), int(200*hp_ratio), 20),
-                         (bx, by, int(bar_w * hp_ratio), bar_h))
-        pygame.draw.rect(surface, (200, 200, 200), (bx, by, bar_w, bar_h), 1)
+        bar_color = (
+            int(220 * (1 - hp_ratio)),
+            int(200 * hp_ratio),
+            20
+        )
+        pygame.draw.rect(surface, bar_color, (bx, by, int(bar_w * hp_ratio), bar_h))
+        pygame.draw.rect(surface, (180, 180, 180), (bx, by, bar_w, bar_h), 1)
 
         if self.slow_timer > 0:
-            font = pygame.font.SysFont("segoeui", 11)
-            s = font.render("❄ slow", True, (140, 180, 255))
-            surface.blit(s, (ix - s.get_width()//2, by - 14))
+            font = pygame.font.SysFont("segoeui", 10)
+            s = font.render("❄", True, (140, 200, 255))
+            surface.blit(s, (ix + r - 8, iy - r))
