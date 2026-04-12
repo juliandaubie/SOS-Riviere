@@ -175,6 +175,14 @@ MAP_BG_IMAGE_PATH = os.path.join("assets", "map_bg.png")
 ENEMY_IMAGE_PATH  = os.path.join("assets", "dechet.png")
 MENU_BTN_Y        = SCREEN_H // 2 + 160
 
+# Images pollution (5 niveaux : propre -> très pollué)
+POLLUTION_IMAGES = [
+    os.path.join("assets", "map_bg.png"),           # 0-20%
+    os.path.join("assets", "pollution_level_1.png"),  # 20-40%
+    os.path.join("assets", "pollution_level_2.png"),  # 40-60%
+    os.path.join("assets", "pollution_level_3.png"),  # 60-80%
+    os.path.join("assets", "pollution_level_4.png"),  # 80-100%
+]
 # Types de trajectoires projectiles
 TRAJ_LINEAR = "linear"
 TRAJ_PARABOLIC = "parabolic"

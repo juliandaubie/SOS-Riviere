@@ -1,5 +1,4 @@
 import pygame
-import math
 from constantes import *
 from utils import tile_to_px, px_to_tile, is_valid_tile
 from tour import PlacedTower
@@ -12,18 +11,34 @@ class Map:
     def __init__(self):
         self.towers        = []
         self.hovered_tile  = None
-        self.bg_image      = self._load_bg()
+        self.pollution_images = self._load_pollution_images()
         # Pollution : 0.0 = eau propre, 1.0 = eau très polluée
         self.pollution     = 0.0
-        self._pollution_surf = None
-        self._dirty_surf_cache = {}
 
-    # Charge et scale l'image de fond carte si existe
-    def _load_bg(self):
-        if os.path.exists(MAP_BG_IMAGE_PATH):
-            img = pygame.image.load(MAP_BG_IMAGE_PATH).convert()
-            return pygame.transform.scale(img, (COLS * TILE_SIZE, ROWS * TILE_SIZE))
-        return None
+    def _load_pollution_images(self):
+        images = []
+        target_size = (COLS * TILE_SIZE, ROWS * TILE_SIZE)
+        for path in POLLUTION_IMAGES:
+            if os.path.exists(path):
+                img = pygame.image.load(path).convert()
+                images.append(pygame.transform.scale(img, target_size))
+            else:
+                images.append(None)
+        return images
+
+
+    # Retourne l'index d'image selon le niveau de pollution (0-4)
+    def _get_pollution_image_index(self):
+        if self.pollution < 0.2:
+            return 0
+        elif self.pollution < 0.4:
+            return 1
+        elif self.pollution < 0.6:
+            return 2
+        elif self.pollution < 0.8:
+            return 3
+        else:
+            return 4
 
     # Augmente pollution quand déchet atteint fin ou meurt dans l'eau
     def add_pollution(self, amount=0.015):
@@ -61,42 +76,15 @@ class Map:
                 return t
         return None
 
-    # Calcule couleur pollution interpolée bleu -> marron + alpha
-    def _get_pollution_color(self):
-        """Interpolation eau bleue → marron pollué."""
-        p = self.pollution
-        r = int(30  + p * 140)
-        g = int(100 - p * 70)
-        b = int(180 - p * 140)
-        return (r, g, b, int(80 + p * 130))
-
-    # Rendu carte : fond, pollution overlay, grille (drag), tours, bordure
     def draw(self, surface, font_small, hovered_tower=None, dragging_item=None):
-        # ── Fond de carte ────────────────────────────────────────────────────
-        if self.bg_image:
-            surface.blit(self.bg_image, (MAP_X, MAP_Y))
+        # ── Fond de carte selon niveau pollution ────────────────────────────
+        img_index = self._get_pollution_image_index()
+        bg_image = self.pollution_images[img_index]
+        if bg_image:
+            surface.blit(bg_image, (MAP_X, MAP_Y))
         else:
             pygame.draw.rect(surface, GRASS_COLOR,
                              (MAP_X, MAP_Y, COLS * TILE_SIZE, ROWS * TILE_SIZE))
-
-        # ── Overlay pollution sur le chemin (eau qui se salit) ───────────────
-        if self.pollution > 0.01:
-            poll_surf = pygame.Surface((COLS * TILE_SIZE, ROWS * TILE_SIZE), pygame.SRCALPHA)
-            pcol = self._get_pollution_color()
-            for (col, row) in ENEMY_PATH:
-                x = col * TILE_SIZE
-                y = row * TILE_SIZE
-                pygame.draw.rect(poll_surf, pcol, (x, y, TILE_SIZE, TILE_SIZE))
-            # Bulles de pollution
-            if self.pollution > 0.3:
-                import random
-                rng = random.Random(int(self.pollution * 100))
-                for _ in range(int(self.pollution * 20)):
-                    bx = rng.randint(0, COLS * TILE_SIZE)
-                    by = rng.randint(0, ROWS * TILE_SIZE)
-                    br = rng.randint(2, 6)
-                    pygame.draw.circle(poll_surf, (60, 40, 10, 120), (bx, by), br)
-            surface.blit(poll_surf, (MAP_X, MAP_Y))
 
         # ── Marqueur fin ────────────────────────────────────────────────────
         ex, ey = tile_to_px(*ENEMY_PATH[-1])
@@ -126,7 +114,6 @@ class Map:
 
         # ── Bordure carte ────────────────────────────────────────────────────
         border_color = (80, 180, 80) if self.pollution < 0.3 else \
-                       (180, 120, 40) if self.pollution < 0.7 else (180, 60, 40)
+            (180, 120, 40) if self.pollution < 0.7 else (180, 60, 40)
         pygame.draw.rect(surface, border_color,
                          (MAP_X - 2, MAP_Y - 2, COLS * TILE_SIZE + 4, ROWS * TILE_SIZE + 4), 3)
-
