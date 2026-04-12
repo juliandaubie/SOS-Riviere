@@ -274,19 +274,19 @@ class MenuScreen:
             self._draw_particles()
 
             # Titre
-            title = self.font_title.render("EARTHTECH", True, (140, 240, 120))
-            shadow = self.font_title.render("EARTHTECH", True, (0, 0, 0))
+            #title = self.font_title.render("EARTHTECH", True, (140, 240, 120))
+            #shadow = self.font_title.render("EARTHTECH", True, (0, 0, 0))
             cx = self.w // 2
             ty = self.h // 2 - 160
-            self.screen.blit(shadow, shadow.get_rect(center=(cx + 3, ty + 3)))
-            self.screen.blit(title,  title.get_rect(center=(cx, ty)))
+            #self.screen.blit(shadow, shadow.get_rect(center=(cx + 3, ty + 3)))
+            #self.screen.blit(title,  title.get_rect(center=(cx, ty)))
 
-            sub = self.font_sub.render("Tower Defense Écologique", True, (180, 240, 160))
-            self.screen.blit(sub, sub.get_rect(center=(cx, ty + 60)))
+            #sub = self.font_sub.render("Tower Defense Écologique", True, (180, 240, 160))
+            #self.screen.blit(sub, sub.get_rect(center=(cx, ty + 60)))
 
             # Slogan rotatif
-            slog = self.font_sub.render(self.slogans[self.slogan_idx], True, (200, 255, 200))
-            self.screen.blit(slog, slog.get_rect(center=(cx, ty + 90)))
+            #slog = self.font_sub.render(self.slogans[self.slogan_idx], True, (200, 255, 200))
+            #self.screen.blit(slog, slog.get_rect(center=(cx, ty + 90)))
 
             self.btn_start.draw(self.screen)
             self.btn_quit.draw(self.screen)
